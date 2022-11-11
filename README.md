@@ -32,7 +32,7 @@ via [start.spring.io](https://start.spring.io/#!type=maven-project&language=java
 
 This is our schema of choice:
 
-``` json
+``` 
 { 
     company: string, 
     appointment: { 
@@ -249,7 +249,6 @@ If this is done appropriately, our desired response for the updating the documen
 #### Summary
 
 - TBA
--
 
 ## Experimentation
 
@@ -276,8 +275,8 @@ There are some ways how we can match the content with the references that came w
     - Cons: Since reflection allows code to perform operations that would be illegal in non-reflective code, such as
       accessing private fields and methods, the use of reflection can result in unexpected side-effects.
 2. JSONPath (Current Implementation)
-   - 
 
+### JsonPath Implementation
 #### Details
 
 The main logic to sync references with content is in our Service class
@@ -332,7 +331,7 @@ class CareerHistoryService {
 ```
 
 - We convert the POJO to a JSON string using Jackson's ObjectMapper
-- Iterating through `references`, we infer if it was a `List` or `String`"
+- Iterating through `references`, we infer if it was a `List` or `String`
     - If contains `[*]`, we infer it as a list and can do class casting accuarately
 - We fetch the content of the field by parsing the JSON string and reading the content based on the JSON PathLiteral
   expression
@@ -342,13 +341,9 @@ class CareerHistoryService {
 
 #### Further improvements
 
-* TODO: Consider the best place to handle:
-    *
-        1. Conversion: Mapper abstract class during conversion
-    *
-        2. Further upstream: HandlerInterceptor, do it before deserialising?
-    *
-        3. Cross-cut concern: interceptor via AOP
+ 1. Consider the best place to handle:
+    - Conversion: Mapper abstract class during conversion
+    - Further upstream: HandlerInterceptor, do it before deserialising?
+    - Cross-cut concern: interceptor via AOP
 
-- Any way of handling type-safety?
-
+2. Any way of handling type-safety?
