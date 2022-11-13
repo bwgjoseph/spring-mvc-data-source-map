@@ -10,9 +10,8 @@ import com.bwgjoseph.springmvcdatasourcemap.common.ReferenceResolver;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
 
-@Mapper(uses = {ReferenceResolver.class}, componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(uses = {ReferenceResolver.class})
 public interface CareerHistoryMapper {
   /**
    * From DTO to Domain object
