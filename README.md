@@ -1,61 +1,62 @@
 # Spring Boot MVC Data Source Map
 
-This project explore ways to design a model (schema) where it allows to map / attribute each field + content to a
-particular data source.
+This project explore ways to design a model (schema) where it allows to map / attribute each field + content to a particular data source.
 
-## Run Project
+- [Spring Boot MVC Data Source Map](#spring-boot-mvc-data-source-map)
+  - [Overview](#overview)
+  - [Schema](#schema)
+  - [Concepts](#concepts)
+  - [Biz Logic](#biz-logic)
+    - [Sync](#sync)
+    - [Validate](#validate)
+    - [Summary](#summary)
+  - [Experimentation](#experimentation)
+    - [Logic](#logic)
+    - [JsonPath Implementation](#jsonpath-implementation)
+      - [Details](#details)
+      - [Further improvements](#further-improvements)
+  - [Run Project](#run-project)
+    - [Mongo Express](#mongo-express)
 
-Start `MongoDB`
+## Overview
 
-```sh
-cd ./.docker
-docker-compose up -d
-```
+This POC aims to investigate how and where we can (1) validate and (2) sync a document's contents and its references.
 
-Run
-
-```sh
-./mvnw spring-boot:run
-```
-
-### Mongo Express
-
-`docker compose` script will setup `mongo express` service which is a web-based UI. It is accessible
-via `http://localhost:8081`
-
----
-
-Project is created
-via [start.spring.io](https://start.spring.io/#!type=maven-project&language=java&platformVersion=2.7.5&packaging=jar&jvmVersion=17&groupId=com.bwgjoseph&artifactId=spring-mvc-data-source-map&name=spring-mvc-data-source-map&description=Spring%20Boot%20MVC%20Data%20Source%20Map&packageName=com.bwgjoseph.spring-mvc-data-source-map&dependencies=devtools,lombok,configuration-processor,web,data-mongodb,validation)
-
+- **Content** refers to all the fields
+- **References** are the source of where that piece of content was obtained.
+-
 ## Schema
 
 This is our schema of choice:
 
-``` 
-{ 
-    company: string, 
-    appointment: { 
-    position: string, 
-    rank: string 
- } 
-    duration: string, 
-    lastDrawnSalary: string, 
-    skills: string[], 
-    certs:[ 
-        { 
-     name: string 
-      issuedBy: string 
-    }], 
-    references: [ 
-        { 
-            field: string, 
-            content: string, 
-            dateObtained: string, 
-            referenceType: enum, 
-            comments: string 
-        } 
-    ] }
+```json
+{
+    "company": "string",
+    "appointment": {
+        "position": "string",
+        "rank": "string"
+    },
+    "duration": "string",
+    "lastDrawnSalary": "string",
+    "skills": [
+        "string"
+    ],
+    "certs": [
+        {
+            "name": "string",
+            "issuedBy": "string"
+        }
+    ],
+    "references": [
+        {
+            "field": "string",
+            "content": "string",
+            "dateObtained": "string",
+            "referenceType": "enum",
+            "comments": "string"
+        }
+    ]
+}
 ```
 
 It contains fields of the following types:
@@ -65,14 +66,7 @@ It contains fields of the following types:
 3. Multi-field (`skills`)
 4. Multi-object (`certs`)
 
-## Overview
-
-This POC aims to investigate how and where we can (1) validate and (2) sync a document's contents and its references.
-
-- **Content** refers to all the fields
-- **References** are the source of where that piece of content was obtained.
-
-### Concepts
+## Concepts
 
 The explanations will be made with reference to this sample document:
 
@@ -115,13 +109,11 @@ The explanations will be made with reference to this sample document:
 
 This document contains only one reference for the `company` field
 
-### Biz Logic
+## Biz Logic
 
-Assume that the above document has been stored in the db. Imagine that this person started a new restaurant, and a
-subsequent request is made to update the existing document:
+Assume that the above document has been stored in the db. Imagine that this person started a new restaurant, and a subsequent request is made to update the existing document:
 
 ``` json
-{
 {
     "id": "636dfc781bdbf02672ce98d3",
     "company": "Michelin Star Restaurant - Junior",
@@ -141,7 +133,7 @@ subsequent request is made to update the existing document:
             "name": "Cooking",
             "issuedBy": "Cooking School A"
         },
-         {
+        {
             "name": "Business Entrepreneur 101",
             "issuedBy": "Linkedin"
         }
@@ -154,21 +146,21 @@ subsequent request is made to update the existing document:
             "referenceType": "GLASSDOOR",
             "comment": "Applied via glassdoor"
         },
-          {
+        {
             "field": "company",
             "content": "Michelin Star Restaurant - Junior",
             "dateObtained": "2022-11-11T12:19:54.52",
             "referenceType": "GLASSDOOR",
             "comment": "Applied via glassdoor"
         },
-          {
+        {
             "field": "appointment.position",
             "content": "Big Boss",
             "dateObtained": "2022-11-11T12:19:54.52",
             "referenceType": "GLASSDOOR",
             "comment": "Applied via glassdoor"
         },
-         {
+        {
             "field": "certs[*].name",
             "content": "Slicing",
             "dateObtained": "2022-11-11T12:19:54.52",
@@ -193,7 +185,7 @@ Notice the **Reference** that came with the request:
     - `"field": "company" && "content": "Michelin Star Restaurant",`
     - `"field": "certs[*].name" && "content": "Slicing"`
 
-#### Sync
+### Sync
 
 That is why syncing should be done. Syncing is referred to removing outdated references, based on the current document.
 If this is done appropriately, our desired response for the updating the document is as such:
@@ -242,11 +234,11 @@ If this is done appropriately, our desired response for the updating the documen
 }
 ```
 
-#### Validate
+### Validate
 
 - TBA
 
-#### Summary
+### Summary
 
 - TBA
 
@@ -277,13 +269,13 @@ There are some ways how we can match the content with the references that came w
 2. JSONPath (Current Implementation)
 
 ### JsonPath Implementation
+
 #### Details
 
-The main logic to sync references with content is in our Service class
+The main logic to sync references with content is in our `Service` class
 
 ```java
 class CareerHistoryService {
-
     /**
      * This method syncs the references of a CareerHistory by removing references which have stale content
      * @param careerHistory
@@ -347,3 +339,27 @@ class CareerHistoryService {
     - Cross-cut concern: interceptor via AOP
 
 2. Any way of handling type-safety?
+
+## Run Project
+
+Start `MongoDB`
+
+```sh
+cd ./.docker
+docker-compose up -d
+```
+
+Run
+
+```sh
+./mvnw spring-boot:run
+```
+
+### Mongo Express
+
+`docker compose` script will setup `mongo express` service which is a web-based UI. It is accessible via `http://localhost:8081`
+
+---
+
+Project is created
+via [start.spring.io](https://start.spring.io/#!type=maven-project&language=java&platformVersion=2.7.5&packaging=jar&jvmVersion=17&groupId=com.bwgjoseph&artifactId=spring-mvc-data-source-map&name=spring-mvc-data-source-map&description=Spring%20Boot%20MVC%20Data%20Source%20Map&packageName=com.bwgjoseph.spring-mvc-data-source-map&dependencies=devtools,lombok,configuration-processor,web,data-mongodb,validation)
