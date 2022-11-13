@@ -1,7 +1,5 @@
 package com.bwgjoseph.springmvcdatasourcemap.common;
 
-import com.bwgjoseph.springmvcdatasourcemap.career.domain.CareerHistory;
-import com.bwgjoseph.springmvcdatasourcemap.career.dto.CareerHistoryDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -31,12 +29,12 @@ public class ReferenceResolver {
    * 3. Cross-cut concert: interceptor via AOP?
    **/
   @AfterMapping
-  public void syncReference(CareerHistoryDTO careerHistoryDTO, @MappingTarget CareerHistory.CareerHistoryBuilder careerHistoryBuilder) {
+  public <T extends ReferencesDTO, S extends References.ReferencesBuilder<?, ?>> void syncReference(T baseDTO, @MappingTarget S builder) {
     List<Reference> inSyncReference = new ArrayList<>();
-    List<ReferenceDTO> references = careerHistoryDTO.getReferences();
+    List<ReferenceDTO> references = baseDTO.getReferences();
 
     try {
-      String jsonString = objectMapper.writeValueAsString(careerHistoryDTO);
+      String jsonString = objectMapper.writeValueAsString(baseDTO);
 
 
       for (ReferenceDTO ref : references) {
@@ -62,10 +60,10 @@ public class ReferenceResolver {
 
     } catch (JsonProcessingException e) {
       e.printStackTrace();
-      inSyncReference = references.stream().map(refDto -> referenceDTOtoReference(refDto)).toList();
+      inSyncReference = references.stream().map(this::referenceDTOtoReference).toList();
     }
 
-    careerHistoryBuilder.references(inSyncReference);
+    (builder).references(inSyncReference);
   }
 
   public Reference referenceDTOtoReference(ReferenceDTO referenceDTO) {
