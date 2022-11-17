@@ -1,11 +1,14 @@
 package com.bwgjoseph.springmvcdatasourcemap.career.dto;
 
-import lombok.AllArgsConstructor;
+import com.bwgjoseph.springmvcdatasourcemap.common.ReferencesDTO;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@AllArgsConstructor
-public class AppointmentDTO {
-    String position;
-    String rank;
+@NoArgsConstructor
+@SuperBuilder
+public class AppointmentDTO extends ReferencesDTO {
+  String position;
+  String rank;
 }

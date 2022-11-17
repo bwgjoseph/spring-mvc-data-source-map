@@ -1,6 +1,7 @@
 # Spring Boot MVC Data Source Map
 
-This project explore ways to design a model (schema) where it allows to map / attribute each field + content to a particular data source.
+This project explore ways to design a model (schema) where it allows to map / attribute each field + content to a
+particular data source.
 
 - [Spring Boot MVC Data Source Map](#spring-boot-mvc-data-source-map)
   - [Overview](#overview)
@@ -24,47 +25,65 @@ This POC aims to investigate how and where we can (1) validate and (2) sync a do
 
 - **Content** refers to all the fields
 - **References** are the source of where that piece of content was obtained.
--
+
 ## Schema
 
 This is our schema of choice:
 
 ```json
 {
-    "company": "string",
-    "appointment": {
-        "position": "string",
-        "rank": "string"
-    },
-    "duration": "string",
-    "lastDrawnSalary": "string",
-    "skills": [
-        "string"
-    ],
-    "certs": [
-        {
-            "name": "string",
-            "issuedBy": "string"
-        }
-    ],
+  "company": "string",
+  "appointment": {
+    "position": "string",
+    "rank": "string",
     "references": [
-        {
-            "field": "string",
-            "content": "string",
-            "dateObtained": "string",
-            "referenceType": "enum",
-            "comments": "string"
-        }
+      {
+        "field": "string",
+        "content": "string",
+        "dateObtained": "string",
+        "referenceType": "enum",
+        "comments": "string"
+      }
     ]
+  },
+  "duration": "string",
+  "lastDrawnSalary": "string",
+  "skills": [
+    "string"
+  ],
+  "certs": [
+    {
+      "name": "string",
+      "issuedBy": "string",
+      "references": [
+        {
+          "field": "string",
+          "content": "string",
+          "dateObtained": "string",
+          "referenceType": "enum",
+          "comments": "string"
+        }
+      ]
+    }
+  ],
+  "references": [
+    {
+      "field": "string",
+      "content": "string",
+      "dateObtained": "string",
+      "referenceType": "enum",
+      "comments": "string"
+    }
+  ]
 }
 ```
 
 It contains fields of the following types:
 
 1. Single-field (`company`, `duration` , `lastDrawnSalary` )
-2. Single-object (`appointment`)
+2. Single-object (`appointment`) - contains `Reference`
 3. Multi-field (`skills`)
-4. Multi-object (`certs`)
+4. Multi-object (`certs`) - contains `Reference`
 
 ## Concepts
 
@@ -76,23 +95,49 @@ The explanations will be made with reference to this sample document:
   "company": "Michelin Star Restaurant",
   "appointment": {
     "position": "Chef B",
-    "rank": "Professional A"
+    "rank": "Professional A",
+    "references": [
+      {
+        "field": "rank",
+        "content": "Professional A",
+        "dateObtained": "2022-11-11T12:19:54.52",
+        "referenceType": "LINKED_IN",
+        "comment": "Obtained via LinkedIn learning"
+      }
+    ]
   },
   "duration": "1Y",
   "lastDrawnSalary": "4K",
   "skills": [
     "Cooking",
-    "Slicing",
-    "Coding"
+    "Slicing"
   ],
   "certs": [
     {
       "name": "Slicing",
-      "issuedBy": "Cooking School A"
+      "issuedBy": "Cooking School A",
+      "references": [
+        {
+          "field": "issuedBy",
+          "content": "Cooking School A",
+          "dateObtained": "2022-11-11T12:19:54.52",
+          "referenceType": "LINKED_IN",
+          "comment": "Obtained via LinkedIn learning"
+        }
+      ]
     },
     {
       "name": "Cooking",
-      "issuedBy": "Cooking School B"
+      "issuedBy": "Cooking School B",
+      "references": [
+        {
+          "field": "name",
+          "content": "Cooking",
+          "dateObtained": "2022-11-11T12:19:54.52",
+          "referenceType": "LINKED_IN",
+          "comment": "Obtained via LinkedIn learning"
+        }
+      ]
     }
   ],
   "references": [
@@ -102,72 +147,104 @@ The explanations will be made with reference to this sample document:
       "dateObtained": "2022-11-11T12:19:54.52",
       "referenceType": "GLASSDOOR",
       "comment": "Applied via glassdoor"
+    },
+    {
+      "field": "skills[*]",
+      "content": "Slicing",
+      "dateObtained": "2022-11-11T12:19:54.52",
+      "referenceType": "GLASSDOOR",
+      "comment": "Learnt in culinary school"
     }
   ]
 }
 ```
 
-This document contains only one reference for the `company` field
+- Single-object and multi-object (List of objects) are seen as embedded documents, hence they can contain their
+  own `references`.
+- As such, the sample document contains the following references:
+  - `reference` in the root document: tagging to `company`
+  - `reference` in the root document: tagging to `skills`
+  - `reference` in `appointment`: tagging to `rank`
+  - `reference` in `certs`: tagging to `name` or `issuedBy`
 
 ## Biz Logic
 
-Assume that the above document has been stored in the db. Imagine that this person started a new restaurant, and a subsequent request is made to update the existing document:
+Assume that the above document has been stored in the db. Imagine that this person started a new restaurant, and a
+subsequent request is made to update the existing document:
 
 ``` json
 {
-    "id": "636dfc781bdbf02672ce98d3",
-    "company": "Michelin Star Restaurant - Junior",
-    "appointment": {
-        "position": "Big Boss",
-        "rank": "Professional A"
-    },
-    "duration": "1Y",
-    "lastDrawnSalary": "4K",
-    "skills": [
-        "Cooking",
-        "Slicing",
-        "Coding"
-    ],
-    "certs": [
-        {
-            "name": "Cooking",
-            "issuedBy": "Cooking School A"
-        },
-        {
-            "name": "Business Entrepreneur 101",
-            "issuedBy": "Linkedin"
-        }
-    ],
+  "id": "636dfc781bdbf02672ce98d3",
+  "company": "Michelin Star Restaurant - Junior",
+  "appointment": {
+    "position": "Big Boss",
+    "rank": "Professional A",
     "references": [
-        {
-            "field": "company",
-            "content": "Michelin Star Restaurant",
-            "dateObtained": "2022-11-11T12:19:54.52",
-            "referenceType": "GLASSDOOR",
-            "comment": "Applied via glassdoor"
-        },
-        {
-            "field": "company",
-            "content": "Michelin Star Restaurant - Junior",
-            "dateObtained": "2022-11-11T12:19:54.52",
-            "referenceType": "GLASSDOOR",
-            "comment": "Applied via glassdoor"
-        },
-        {
-            "field": "appointment.position",
-            "content": "Big Boss",
-            "dateObtained": "2022-11-11T12:19:54.52",
-            "referenceType": "GLASSDOOR",
-            "comment": "Applied via glassdoor"
-        },
-        {
-            "field": "certs[*].name",
-            "content": "Slicing",
-            "dateObtained": "2022-11-11T12:19:54.52",
-            "referenceType": "GLASSDOOR",
-            "comment": "Applied via glassdoor"
-        }
+      {
+        "field": "position",
+        "content": "Chef B",
+        "dateObtained": "2022-11-11T12:19:54.52",
+        "referenceType": "LINKED_IN",
+        "comment": "Obtained via LinkedIn learning"
+      }
     ]
+  },
+  "duration": "1Y",
+  "lastDrawnSalary": "4K",
+  "skills": [
+    "Cooking"
+  ],
+  "certs": [
+    {
+      "name": "Slicing",
+      "issuedBy": "Cooking School A",
+      "references": [
+        {
+          "field": "issuedBy",
+          "content": "Cooking School A",
+          "dateObtained": "2022-11-11T12:19:54.52",
+          "referenceType": "LINKED_IN",
+          "comment": "Obtained via LinkedIn learning"
+        }
+      ]
+    },
+    {
+      "name": "Cooking",
+      "issuedBy": "Cooking School B",
+      "references": [
+        {
+          "field": "name",
+          "content": "Cooking",
+          "dateObtained": "2022-11-11T12:19:54.52",
+          "referenceType": "LINKED_IN",
+          "comment": "Obtained via LinkedIn learning"
+        }
+      ]
+    }
+  ],
+  "references": [
+    {
+      "field": "company",
+      "content": "Michelin Star Restaurant",
+      "dateObtained": "2022-11-11T12:19:54.52",
+      "referenceType": "GLASSDOOR",
+      "comment": "Applied via glassdoor"
+    },
+    {
+      "field": "company",
+      "content": "Michelin Star Restaurant - Junior",
+      "dateObtained": "2022-11-11T12:19:54.52",
+      "referenceType": "GLASSDOOR",
+      "comment": "Applied via glassdoor"
+    },
+     {
+      "field": "skills[*]",
+      "content": "Slicing",
+      "dateObtained": "2022-11-11T12:19:54.52",
+      "referenceType": "GLASSDOOR",
+      "comment": "Learnt in culinary school"
+    }
+  ]
 }
 ```
 
@@ -175,15 +252,12 @@ Notice the difference in **Content** of the document:
 
 1. `company`: Changed from `Michelin Star Restaurant` to `Michelin Star Restaurant - Junior`
 2. `appointment.position`: Changed from `Chef A` to `Big Boss`
-3. `certs`:
-    - Added a new cert `Business Entrepreneur 101`
-    - Removed a cert `Slicing`
+3. `certs`: Removed a cert `Slicing`
 
 Notice the **Reference** that came with the request:
-
 - Outdated references that tagged to "outdated"/"irrelevant", in particular:
-    - `"field": "company" && "content": "Michelin Star Restaurant",`
-    - `"field": "certs[*].name" && "content": "Slicing"`
+  - `"field": "company" && "content": "Michelin Star Restaurant",`
+  - `"field": "certs[*].name" && "content": "Slicing"`
 
 ### Sync
 
@@ -192,29 +266,6 @@ If this is done appropriately, our desired response for the updating the documen
 
 ```json
 {
-  "id": "636dfc781bdbf02672ce98d3",
-  "company": "Michelin Star Restaurant - Junior",
-  "appointment": {
-    "position": "Big Boss",
-    "rank": "Professional A"
-  },
-  "duration": "1Y",
-  "lastDrawnSalary": "4K",
-  "skills": [
-    "Cooking",
-    "Slicing",
-    "Coding"
-  ],
-  "certs": [
-    {
-      "name": "Cooking",
-      "issuedBy": "Cooking School A"
-    },
-    {
-      "name": "Business Entrepreneur 101",
-      "issuedBy": "Linkedin"
-    }
-  ],
   "references": [
     {
       "field": "company",
@@ -222,13 +273,46 @@ If this is done appropriately, our desired response for the updating the documen
       "dateObtained": "2022-11-11T12:19:54.52",
       "referenceType": "GLASSDOOR",
       "comment": "Applied via glassdoor"
+    }
+  ],
+  "id": "636dfc781bdbf02672ce98d3",
+  "company": "Michelin Star Restaurant - Junior",
+  "appointment": {
+    "references": [],
+    "position": "Big Boss",
+    "rank": "Professional A"
+  },
+  "duration": "1Y",
+  "lastDrawnSalary": "4K",
+  "skills": [
+    "Cooking"
+  ],
+  "certs": [
+    {
+      "references": [
+        {
+          "field": "issuedBy",
+          "content": "Cooking School A",
+          "dateObtained": "2022-11-11T12:19:54.52",
+          "referenceType": "LINKED_IN",
+          "comment": "Obtained via LinkedIn learning"
+        }
+      ],
+      "name": "Slicing",
+      "issuedBy": "Cooking School A"
     },
     {
-      "field": "appointment.position",
-      "content": "Big Boss",
-      "dateObtained": "2022-11-11T12:19:54.52",
-      "referenceType": "GLASSDOOR",
-      "comment": "Applied via glassdoor"
+      "references": [
+        {
+          "field": "name",
+          "content": "Cooking",
+          "dateObtained": "2022-11-11T12:19:54.52",
+          "referenceType": "LINKED_IN",
+          "comment": "Obtained via LinkedIn learning"
+        }
+      ],
+      "name": "Cooking",
+      "issuedBy": "Cooking School B"
     }
   ]
 }
@@ -247,96 +331,122 @@ If this is done appropriately, our desired response for the updating the documen
 We aim for our implementation to be:
 
 1. Generic - It should tailor to:
-    - All data types, not just `String`
-    - All schemas
+   - All data types, not just `String`
+   - All schemas
 2. Ease of use - Since `Reference` should be applied on almost every resource, we should:
-    - Reduce code-duplication
-    - Abstract it appropriately
+   - Reduce code-duplication
+   - Abstract it appropriately
 3. Intuitive
 4. Sustainable
 5. (Stretch) Efficient
 6. (Stretch) Easy interpretation by clients
 
 ### Logic
-
 There are some ways how we can match the content with the references that came with it:
-
 1. Reflection API:
-    - Reflection allows an executing Java program to examine or "introspect" upon itself.
-    - Potential approach: In this case, we can get the fields based on the `reference.field` during run-time
-    - Cons: Since reflection allows code to perform operations that would be illegal in non-reflective code, such as
-      accessing private fields and methods, the use of reflection can result in unexpected side-effects.
+   - Reflection allows an executing Java program to examine or "introspect" upon itself.
+   - Potential approach: In this case, we can get the fields based on the `reference.field` during run-time
+   - Cons: Since reflection allows code to perform operations that would be illegal in non-reflective code, such as
+     accessing private fields and methods, the use of reflection can result in unexpected side-effects.
+
 2. JSONPath (Current Implementation)
 
 ### JsonPath Implementation
 
 #### Details
 
-The main logic to sync references with content is in our `Service` class
+The main logic to sync references with content:
 
 ```java
 class CareerHistoryService {
-    /**
-     * This method syncs the references of a CareerHistory by removing references which have stale content
-     * @param careerHistory
-     * @return CareerHistory containing reference list which are synced to the object
-     */
-    protected CareerHistory syncReferenceByContent(CareerHistory careerHistory) {
-        try {
-            String jsonString = objectMapper.writeValueAsString(careerHistory);
+  /**
+   * This method syncs the references of a CareerHistory by removing references which have stale content
+   * @param careerHistory
+   * @return CareerHistory containing reference list which are synced to the object
+   */
+  protected CareerHistory syncReferenceByContent(CareerHistory careerHistory) {
+    try {
+      String jsonString = objectMapper.writeValueAsString(careerHistory);
 
-            List<Reference> references = careerHistory.getReferences();
-            List<Reference> inSyncReference = new ArrayList<>();
+      List<Reference> references = careerHistory.getReferences();
+      List<Reference> inSyncReference = new ArrayList<>();
 
 
-            for (Reference ref : references) {
-                String jsonPath = ref.getField();
-                log.info("JSON PATH {}", jsonPath);
+      for (Reference ref : references) {
+        String jsonPath = ref.getField();
+        log.info("JSON PATH {}", jsonPath);
 
-                if (jsonPath.contains("[*]")) {
-                    List<String> contentList = JsonPath.parse(jsonString)
-                            .read(String.format("$.%s", jsonPath));
-                    if (contentList != null && contentList.contains(ref.getContent())) {
-                        inSyncReference.add(ref);
-                    }
-                } else {
+        if (jsonPath.contains("[*]")) {
+          List<String> contentList = JsonPath.parse(jsonString)
+            .read(String.format("$.%s", jsonPath));
+          if (contentList != null && contentList.contains(ref.getContent())) {
+            inSyncReference.add(ref);
+          }
+        } else {
 
-                    String content = JsonPath.parse(jsonString)
-                            .read(String.format("$.%s", jsonPath));
+          String content = JsonPath.parse(jsonString)
+            .read(String.format("$.%s", jsonPath));
 
-                    if (content != null && content.equals(ref.getContent())) {
-                        inSyncReference.add(ref);
-                    }
-                }
-            }
-
-            careerHistory.setReferences(inSyncReference);
-            return careerHistory;
-
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+          if (content != null && content.equals(ref.getContent())) {
+            inSyncReference.add(ref);
+          }
         }
+      }
 
-        return careerHistory;
+      careerHistory.setReferences(inSyncReference);
+      return careerHistory;
+
+    } catch (JsonProcessingException e) {
+      e.printStackTrace();
     }
+
+    return careerHistory;
+  }
 }
 ```
 
 - We convert the POJO to a JSON string using Jackson's ObjectMapper
 - Iterating through `references`, we infer if it was a `List` or `String`
-    - If contains `[*]`, we infer it as a list and can do class casting accuarately
+  - If contains `[*]`, we infer it as a list and can do class casting accuarately
 - We fetch the content of the field by parsing the JSON string and reading the content based on the JSON PathLiteral
   expression
 - We define a reference as "in-Sync" and persist it if:
-    - List<String>: our `reference.content` is in `field.content`
-    - String: our `reference.content` == `field.content`
+  - List<String>: our `reference.content` is in `field.content`
+  - String: our `reference.content` == `field.content`
+
+#### MapStruct for  abstraction
+- To abstract out the logic of syncing reference with content, and mapping our domain objects, we can do it when the DTO is converted to POJO
+- Mapstruct supports the following:
+  - Mapping between source and target objects
+  - Callback functions before/after mapping
+  - Support with lombok
+  - Support for generic mapping
+
+1. Common "Mapper" `ReferenceResolver` which is used by all Mappers (e.g., `CareerHistoryMapper`, `EmployeeMapper`)
+   - Each mapper invokes the `ReferenceResolver` using the annotation: `@Mapper(uses = {ReferenceResolver.class})`
+
+2. Using `@AfterMapping`, we can also pass in the `@MappingTarget` (i.e., object builder), such that we can run our sync processing generically and recursively:
+  ``` java
+    @Component
+    @Slf4j
+    public class ReferenceResolver {
+      @Autowired
+      ObjectMapper objectMapper;
+
+      @AfterMapping
+      public <T extends ReferencesDTO, S extends References.ReferencesBuilder<?, ?>> void syncReference(T baseDTO, @MappingTarget S builder) {
+        // insert sync logic
+        (builder).references(inSyncReference);
+      }
+    }
+  ```
+  - i.e., Any DTO that extends `ReferenceDTO` and is annotated with `@SuperBuilder` will invoke this method, build the synced reference, before the main mapping method builds the POJO and returns it.
 
 #### Further improvements
-
- 1. Consider the best place to handle:
-    - Conversion: Mapper abstract class during conversion
-    - Further upstream: HandlerInterceptor, do it before deserialising?
-    - Cross-cut concern: interceptor via AOP
+1. Consider the best place to handle:
+   - Conversion: Mapper abstract class during conversion
+   - Further upstream: HandlerInterceptor, do it before deserialising?
+   - Cross-cut concern: interceptor via AOP
 
 2. Any way of handling type-safety?
 
@@ -357,7 +467,8 @@ Run
 
 ### Mongo Express
 
-`docker compose` script will setup `mongo express` service which is a web-based UI. It is accessible via `http://localhost:8081`
+`docker compose` script will setup `mongo express` service which is a web-based UI. It is accessible
+via `http://localhost:8081`
 
 ---
 

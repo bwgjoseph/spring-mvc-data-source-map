@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-//@Mapper
 @Component
 @Slf4j
 public class ReferenceResolver {
@@ -79,6 +78,4 @@ public class ReferenceResolver {
       .comment(referenceDTO.getComment())
       .build();
   }
-
-
 }

@@ -56,7 +56,6 @@ public class CareerHistoryService {
    * @return
    */
   protected boolean isReferencePresentWhenRequired() {
-
     return true;
   }
 

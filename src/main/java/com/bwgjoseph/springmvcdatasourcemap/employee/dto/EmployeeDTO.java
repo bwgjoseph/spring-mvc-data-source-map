@@ -15,7 +15,4 @@ public class EmployeeDTO extends ReferencesDTO {
   String bioNotes;
 
   public enum Gender {FEMALE, MALE}
-
-  ;
-
 }
