@@ -5,10 +5,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Set;
+
 @Data
 @NoArgsConstructor
 @SuperBuilder
 public class AppointmentDTO extends ReferencesDTO {
-  String position;
-  String rank;
+    String position;
+    String rank;
+
+    @Override
+    public Set<String> getMandatoryReferences() {
+        return Set.of("position");
+    }
+
+    @Override
+    public Set<String> getOptionalReferences() {
+        return Set.of("rank");
+    }
 }

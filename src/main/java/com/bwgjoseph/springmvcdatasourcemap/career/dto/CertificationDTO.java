@@ -5,10 +5,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Set;
+
 @Data
 @NoArgsConstructor
 @SuperBuilder
 public class CertificationDTO extends ReferencesDTO {
-  String name;
-  String issuedBy;
+    String name;
+    String issuedBy;
+
+    @Override
+    public Set<String> getMandatoryReferences() {
+        return Set.of("name", "issuedBy");
+    }
+
+    @Override
+    public Set<String> getOptionalReferences() {
+        return Set.of();
+    }
 }

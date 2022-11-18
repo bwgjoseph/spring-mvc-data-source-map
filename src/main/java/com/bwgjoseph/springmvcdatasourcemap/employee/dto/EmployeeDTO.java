@@ -5,14 +5,26 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Set;
+
 @Data
 @SuperBuilder
 @NoArgsConstructor
 public class EmployeeDTO extends ReferencesDTO {
-  String id;
-  Gender gender;
-  String employeeName;
-  String bioNotes;
+    String id;
+    Gender gender;
+    String employeeName;
+    String bioNotes;
 
-  public enum Gender {FEMALE, MALE}
+    @Override
+    protected Set<String> getMandatoryReferences() {
+        return Set.of();
+    }
+
+    @Override
+    protected Set<String> getOptionalReferences() {
+        return Set.of();
+    }
+
+    public enum Gender {FEMALE, MALE}
 }
