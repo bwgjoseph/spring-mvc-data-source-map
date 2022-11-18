@@ -14,13 +14,14 @@ import java.util.Set;
 public abstract class ReferencesDTO {
     List<ReferenceDTO> references;
 
-    protected abstract Set<String> getMandatoryReferences();
+    public abstract Set<String> getMandatoryReferences();
 
-    protected abstract Set<String> getOptionalReferences();
+    public abstract Set<String> getOptionalReferences();
 
-    Set<String> getAllSupportedReferences() {
+    public Set<String> getAllSupportedReferences() {
         Set<String> allSupportedReferences = new HashSet<>(getMandatoryReferences());
         allSupportedReferences.addAll(getOptionalReferences());
         return allSupportedReferences;
     }
+
 }

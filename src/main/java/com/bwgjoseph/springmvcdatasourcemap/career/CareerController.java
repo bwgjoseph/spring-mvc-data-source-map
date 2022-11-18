@@ -5,6 +5,7 @@ import com.bwgjoseph.springmvcdatasourcemap.career.dto.CareerHistoryDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,7 +27,7 @@ public class CareerController {
     }
 
     @PostMapping
-    public CareerHistory addRecord(@RequestBody CareerHistoryDTO careerHistoryDTO) {
+    public CareerHistory addRecord(@RequestBody @Valid CareerHistoryDTO careerHistoryDTO) {
         return careerHistoryService.addRecord(careerHistoryDTO);
     }
 

@@ -14,10 +14,9 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 @Document(collection = "employee")
 @NoArgsConstructor
 public class Employee extends References {
-  @MongoId
-  String id;
-  com.bwgjoseph.springmvcdatasourcemap.employee.dto.EmployeeDTO.Gender gender;
-  String employeeName;
-  String bioNotes;
-
+    @MongoId
+    String id;
+    com.bwgjoseph.springmvcdatasourcemap.employee.dto.EmployeeDTO.Gender gender;
+    String employeeName;
+    String bioNotes;
 }

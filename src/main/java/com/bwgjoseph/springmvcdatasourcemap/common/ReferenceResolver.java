@@ -32,21 +32,6 @@ public class ReferenceResolver {
         List<Reference> inSyncReference = new ArrayList<>();
         List<ReferenceDTO> references = baseDTO.getReferences();
 
-        /**
-         * Check if only supported references exist (i.e., both Mandatory and Optional!)
-         */
-        Set<String> supportedReferenceFields = baseDTO.getAllSupportedReferences();
-        List<String> referenceNotSupportedList
-                = references.stream()
-                .map(ReferenceDTO::getField)
-                .filter(refField -> !supportedReferenceFields.contains(refField))
-                .toList();
-
-        if (!referenceNotSupportedList.isEmpty()) {
-            // TODO: throw specific ReferenceException with which exact field
-            throw new IllegalArgumentException(String.format("References not supported: %s", referenceNotSupportedList));
-        }
-
         Map<String, List<String>> fieldToContentMap = new HashMap<>();
 
         try {
