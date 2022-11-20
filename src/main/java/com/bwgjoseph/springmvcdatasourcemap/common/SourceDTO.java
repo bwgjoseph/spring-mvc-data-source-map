@@ -4,12 +4,13 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
-public class ReferenceDTO {
-  String field;
-  String content;
-  List<SourceDTO> sources;
+public class SourceDTO {
+  LocalDateTime dateObtained;
+
+  ReferenceType referenceType;
+  String comment;
+
 }

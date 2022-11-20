@@ -1,5 +1,7 @@
 package com.bwgjoseph.springmvcdatasourcemap.common;
 
+import com.bwgjoseph.springmvcdatasourcemap.career.domain.Certification;
+import com.bwgjoseph.springmvcdatasourcemap.career.dto.CertificationDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
@@ -31,7 +33,7 @@ public class ReferenceResolver {
   public <T extends ReferencesDTO, S extends References.ReferencesBuilder<?, ?>> void syncReference(T baseDTO, @MappingTarget S builder) {
     List<Reference> inSyncReference = new ArrayList<>();
     List<ReferenceDTO> references = baseDTO.getReferences();
-    
+
     try {
       String jsonString = objectMapper.writeValueAsString(baseDTO);
 
@@ -73,9 +75,33 @@ public class ReferenceResolver {
     return Reference.builder()
       .field(referenceDTO.getField())
       .content(referenceDTO.getContent())
-      .dateObtained(referenceDTO.getDateObtained())
-      .referenceType(referenceDTO.getReferenceType())
-      .comment(referenceDTO.getComment())
+      .sources(sourceDTOListSourceList(referenceDTO.sources))
       .build();
   }
+
+  public List<Source> sourceDTOListSourceList(List<SourceDTO> list) {
+    if (list == null) {
+      return null;
+    } else {
+      List<Source> list1 = new ArrayList(list.size());
+      Iterator var3 = list.iterator();
+
+      while (var3.hasNext()) {
+        SourceDTO sourceDTO = (SourceDTO) var3.next();
+        list1.add(this.map(sourceDTO));
+      }
+
+      return list1;
+    }
+  }
+
+  public Source map(SourceDTO sourceDTO) {
+    return Source
+      .builder()
+      .referenceType(sourceDTO.referenceType)
+      .dateObtained(sourceDTO.dateObtained)
+      .comment(sourceDTO.comment)
+      .build();
+  }
+
 }
