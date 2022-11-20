@@ -16,13 +16,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 public @interface ValidReference {
 
-    String message() default "Valid reference";
+  String message() default "Valid reference not present";
 
-    Class<?>[] groups() default {};
+  Class<?>[] groups() default {};
 
-    Class<? extends Payload>[] payload() default {};
+  Class<? extends Payload>[] payload() default {};
 
-    String[] mandatoryRefs();
+  String[] mandatoryRefs();
 
-    String[] optionalRefs();
+  String[] optionalRefs();
 }
