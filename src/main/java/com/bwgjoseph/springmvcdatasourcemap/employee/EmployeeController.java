@@ -31,7 +31,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/{id}")
-    public Employee updateRecord(@PathVariable String id, @RequestBody EmployeeDTO employeeDTO) {
+    public Employee updateRecord(@PathVariable String id, @RequestBody @Valid EmployeeDTO employeeDTO) {
         return employeeService.updateRecord(id, employeeDTO);
     }
 

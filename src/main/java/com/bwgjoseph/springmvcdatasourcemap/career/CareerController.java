@@ -32,7 +32,7 @@ public class CareerController {
     }
 
     @PutMapping("/{id}")
-    public CareerHistory updateRecord(@PathVariable String id, @RequestBody CareerHistoryDTO careerHistoryDTO) {
+    public CareerHistory updateRecord(@PathVariable String id, @RequestBody @Valid CareerHistoryDTO careerHistoryDTO) {
         return careerHistoryService.updateRecord(id, careerHistoryDTO);
     }
 
