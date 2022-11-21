@@ -40,11 +40,12 @@ This is our schema of choice:
       {
         "field": "string",
         "content": "string",
-        "dateObtained": "string",
-        "referenceType": "enum",
-        "comments": "string"
-      }
-    ]
+        "source": [ {
+          "dateObtained": "string",
+          "referenceType": "enum",
+          "comments": "string"
+        }]
+      }]
   },
   "duration": "string",
   "lastDrawnSalary": "string",
@@ -59,9 +60,11 @@ This is our schema of choice:
         {
           "field": "string",
           "content": "string",
-          "dateObtained": "string",
-          "referenceType": "enum",
-          "comments": "string"
+          "source": [ {
+            "dateObtained": "string",
+            "referenceType": "enum",
+            "comments": "string"
+          }]
         }
       ]
     }
@@ -70,9 +73,11 @@ This is our schema of choice:
     {
       "field": "string",
       "content": "string",
-      "dateObtained": "string",
-      "referenceType": "enum",
-      "comments": "string"
+      "source": [ {
+        "dateObtained": "string",
+        "referenceType": "enum",
+        "comments": "string"
+      }]
     }
   ]
 }
@@ -84,6 +89,9 @@ It contains fields of the following types:
 2. Single-object (`appointment`) - contains `Reference`
 3. Multi-field (`skills`)
 4. Multi-object (`certs`) - contains `Reference`
+
+To support a one-to-many relationship of field-to-reference:
+- Each reference contains a list of source.
 
 ## Concepts
 
@@ -100,9 +108,11 @@ The explanations will be made with reference to this sample document:
       {
         "field": "rank",
         "content": "Professional A",
-        "dateObtained": "2022-11-11T12:19:54.52",
-        "referenceType": "LINKED_IN",
-        "comment": "Obtained via LinkedIn learning"
+        "source": [ {
+          "dateObtained": "2022-11-11T12:19:54.52",
+          "referenceType": "LINKED_IN",
+          "comment": "Obtained via LinkedIn learning"
+        }]
       }
     ]
   },
@@ -120,9 +130,11 @@ The explanations will be made with reference to this sample document:
         {
           "field": "issuedBy",
           "content": "Cooking School A",
-          "dateObtained": "2022-11-11T12:19:54.52",
-          "referenceType": "LINKED_IN",
-          "comment": "Obtained via LinkedIn learning"
+          "source": [ {
+            "dateObtained": "2022-11-11T12:19:54.52",
+            "referenceType": "LINKED_IN",
+            "comment": "Obtained via LinkedIn learning"
+          }]
         }
       ]
     },
@@ -133,9 +145,11 @@ The explanations will be made with reference to this sample document:
         {
           "field": "name",
           "content": "Cooking",
-          "dateObtained": "2022-11-11T12:19:54.52",
-          "referenceType": "LINKED_IN",
-          "comment": "Obtained via LinkedIn learning"
+          "source": [ {
+            "dateObtained": "2022-11-11T12:19:54.52",
+            "referenceType": "LINKED_IN",
+            "comment": "Obtained via LinkedIn learning"
+          }]
         }
       ]
     }
@@ -144,16 +158,20 @@ The explanations will be made with reference to this sample document:
     {
       "field": "company",
       "content": "Michelin Star Restaurant",
-      "dateObtained": "2022-11-11T12:19:54.52",
-      "referenceType": "GLASSDOOR",
-      "comment": "Applied via glassdoor"
+      "source": [ {
+        "dateObtained": "2022-11-11T12:19:54.52",
+        "referenceType": "LINKED_IN",
+        "comment": "Obtained via LinkedIn learning"
+      }]
     },
     {
       "field": "skills[*]",
       "content": "Slicing",
-      "dateObtained": "2022-11-11T12:19:54.52",
-      "referenceType": "GLASSDOOR",
-      "comment": "Learnt in culinary school"
+      "source": [ {
+        "dateObtained": "2022-11-11T12:19:54.52",
+        "referenceType": "LINKED_IN",
+        "comment": "Obtained via LinkedIn learning"
+      }]
     }
   ]
 }
@@ -168,262 +186,41 @@ The explanations will be made with reference to this sample document:
   - `reference` in `certs`: tagging to `name` or `issuedBy`
 
 ## Biz Logic
+These are the following requirements
 
-Assume that the above document has been stored in the db. Imagine that this person started a new restaurant, and a
-subsequent request is made to update the existing document:
-
-``` json
-{
-  "id": "636dfc781bdbf02672ce98d3",
-  "company": "Michelin Star Restaurant - Junior",
-  "appointment": {
-    "position": "Big Boss",
-    "rank": "Professional A",
-    "references": [
-      {
-        "field": "position",
-        "content": "Chef B",
-        "dateObtained": "2022-11-11T12:19:54.52",
-        "referenceType": "LINKED_IN",
-        "comment": "Obtained via LinkedIn learning"
-      }
-    ]
-  },
-  "duration": "1Y",
-  "lastDrawnSalary": "4K",
-  "skills": [
-    "Cooking"
-  ],
-  "certs": [
-    {
-      "name": "Slicing",
-      "issuedBy": "Cooking School A",
-      "references": [
-        {
-          "field": "issuedBy",
-          "content": "Cooking School A",
-          "dateObtained": "2022-11-11T12:19:54.52",
-          "referenceType": "LINKED_IN",
-          "comment": "Obtained via LinkedIn learning"
-        }
-      ]
-    },
-    {
-      "name": "Cooking",
-      "issuedBy": "Cooking School B",
-      "references": [
-        {
-          "field": "name",
-          "content": "Cooking",
-          "dateObtained": "2022-11-11T12:19:54.52",
-          "referenceType": "LINKED_IN",
-          "comment": "Obtained via LinkedIn learning"
-        }
-      ]
-    }
-  ],
-  "references": [
-    {
-      "field": "company",
-      "content": "Michelin Star Restaurant",
-      "dateObtained": "2022-11-11T12:19:54.52",
-      "referenceType": "GLASSDOOR",
-      "comment": "Applied via glassdoor"
-    },
-    {
-      "field": "company",
-      "content": "Michelin Star Restaurant - Junior",
-      "dateObtained": "2022-11-11T12:19:54.52",
-      "referenceType": "GLASSDOOR",
-      "comment": "Applied via glassdoor"
-    },
-     {
-      "field": "skills[*]",
-      "content": "Slicing",
-      "dateObtained": "2022-11-11T12:19:54.52",
-      "referenceType": "GLASSDOOR",
-      "comment": "Learnt in culinary school"
-    }
-  ]
-}
-```
-
-Notice the difference in **Content** of the document:
-
-1. `company`: Changed from `Michelin Star Restaurant` to `Michelin Star Restaurant - Junior`
-2. `appointment.position`: Changed from `Chef A` to `Big Boss`
-3. `certs`: Removed a cert `Slicing`
-
-Notice the **Reference** that came with the request:
-- Outdated references that tagged to "outdated"/"irrelevant", in particular:
-  - `"field": "company" && "content": "Michelin Star Restaurant",`
-  - `"field": "certs[*].name" && "content": "Slicing"`
-
-### Sync
-
-That is why syncing should be done. Syncing is referred to removing outdated references, based on the current document.
-If this is done appropriately, our desired response for the updating the document is as such:
-
-```json
-{
-  "references": [
-    {
-      "field": "company",
-      "content": "Michelin Star Restaurant - Junior",
-      "dateObtained": "2022-11-11T12:19:54.52",
-      "referenceType": "GLASSDOOR",
-      "comment": "Applied via glassdoor"
-    }
-  ],
-  "id": "636dfc781bdbf02672ce98d3",
-  "company": "Michelin Star Restaurant - Junior",
-  "appointment": {
-    "references": [],
-    "position": "Big Boss",
-    "rank": "Professional A"
-  },
-  "duration": "1Y",
-  "lastDrawnSalary": "4K",
-  "skills": [
-    "Cooking"
-  ],
-  "certs": [
-    {
-      "references": [
-        {
-          "field": "issuedBy",
-          "content": "Cooking School A",
-          "dateObtained": "2022-11-11T12:19:54.52",
-          "referenceType": "LINKED_IN",
-          "comment": "Obtained via LinkedIn learning"
-        }
-      ],
-      "name": "Slicing",
-      "issuedBy": "Cooking School A"
-    },
-    {
-      "references": [
-        {
-          "field": "name",
-          "content": "Cooking",
-          "dateObtained": "2022-11-11T12:19:54.52",
-          "referenceType": "LINKED_IN",
-          "comment": "Obtained via LinkedIn learning"
-        }
-      ],
-      "name": "Cooking",
-      "issuedBy": "Cooking School B"
-    }
-  ]
-}
-```
-
-### Validate
-
-- TBA
+1. Validation: mandatory references present and non-supported references prohibited
+2. Sync-reference-to-content: remove "outdated" references
+3. Update-reference-by-domain: TODO
 
 ### Summary
+![high-level](reference/diagram.png)
 
-- TBA
+#### Sync
+Syncing is referred to removing outdated references, based on the current document.
 
-## Experimentation
-
-We aim for our implementation to be:
-
-1. Generic - It should tailor to:
-   - All data types, not just `String`
-   - All schemas
-2. Ease of use - Since `Reference` should be applied on almost every resource, we should:
-   - Reduce code-duplication
-   - Abstract it appropriately
-3. Intuitive
-4. Sustainable
-5. (Stretch) Efficient
-6. (Stretch) Easy interpretation by clients
-
-### Logic
-There are some ways how we can match the content with the references that came with it:
+#####  Implementation Details - How?
+There are some ways we can match the content with the references that came with it:
 1. Reflection API:
-   - Reflection allows an executing Java program to examine or "introspect" upon itself.
-   - Potential approach: In this case, we can get the fields based on the `reference.field` during run-time
-   - Cons: Since reflection allows code to perform operations that would be illegal in non-reflective code, such as
-     accessing private fields and methods, the use of reflection can result in unexpected side-effects.
-
+    - Reflection allows an executing Java program to examine or "introspect" upon itself.
+    - Potential approach: In this case, we can get the fields based on the `reference.field` during run-time
+    - Cons: Since reflection allows code to perform operations that would be illegal in non-reflective code, such as
+      accessing private fields and methods, the use of reflection can result in unexpected side-effects.
 2. JSONPath (Current Implementation)
+   - Convert POJO to json String representation. 
+   - After converting `reference.field` to JsonPath's syntax, we are able to parse the JSON string and obtain the `List<String>`/`String` representation which should match `reference.content`
+3. BeanWrapper
 
-### JsonPath Implementation
-
-#### Details
-
-The main logic to sync references with content:
-
-```java
-class CareerHistoryService {
-  /**
-   * This method syncs the references of a CareerHistory by removing references which have stale content
-   * @param careerHistory
-   * @return CareerHistory containing reference list which are synced to the object
-   */
-  protected CareerHistory syncReferenceByContent(CareerHistory careerHistory) {
-    try {
-      String jsonString = objectMapper.writeValueAsString(careerHistory);
-
-      List<Reference> references = careerHistory.getReferences();
-      List<Reference> inSyncReference = new ArrayList<>();
-
-
-      for (Reference ref : references) {
-        String jsonPath = ref.getField();
-        log.info("JSON PATH {}", jsonPath);
-
-        if (jsonPath.contains("[*]")) {
-          List<String> contentList = JsonPath.parse(jsonString)
-            .read(String.format("$.%s", jsonPath));
-          if (contentList != null && contentList.contains(ref.getContent())) {
-            inSyncReference.add(ref);
-          }
-        } else {
-
-          String content = JsonPath.parse(jsonString)
-            .read(String.format("$.%s", jsonPath));
-
-          if (content != null && content.equals(ref.getContent())) {
-            inSyncReference.add(ref);
-          }
-        }
-      }
-
-      careerHistory.setReferences(inSyncReference);
-      return careerHistory;
-
-    } catch (JsonProcessingException e) {
-      e.printStackTrace();
-    }
-
-    return careerHistory;
-  }
-}
-```
-
-- We convert the POJO to a JSON string using Jackson's ObjectMapper
-- Iterating through `references`, we infer if it was a `List` or `String`
-  - If contains `[*]`, we infer it as a list and can do class casting accuarately
-- We fetch the content of the field by parsing the JSON string and reading the content based on the JSON PathLiteral
-  expression
-- We define a reference as "in-Sync" and persist it if:
-  - List<String>: our `reference.content` is in `field.content`
-  - String: our `reference.content` == `field.content`
-
-#### MapStruct for  abstraction
+#####  Implementation Details - Where?
+- **DTO-to-domain conversion (using Mapstruct)**
 - To abstract out the logic of syncing reference with content, and mapping our domain objects, we can do it when the DTO is converted to POJO
 - Mapstruct supports the following:
-  - Mapping between source and target objects
-  - Callback functions before/after mapping
-  - Support with lombok
-  - Support for generic mapping
+    - Mapping between source and target objects
+    - Callback functions before/after mapping
+    - Support with lombok
+    - Support for generic mapping
 
 1. Common "Mapper" `ReferenceResolver` which is used by all Mappers (e.g., `CareerHistoryMapper`, `EmployeeMapper`)
-   - Each mapper invokes the `ReferenceResolver` using the annotation: `@Mapper(uses = {ReferenceResolver.class})`
+    - Each mapper invokes the `ReferenceResolver` using the annotation: `@Mapper(uses = {ReferenceResolver.class})`
 
 2. Using `@AfterMapping`, we can also pass in the `@MappingTarget` (i.e., object builder), such that we can run our sync processing generically and recursively:
   ``` java
@@ -440,7 +237,34 @@ class CareerHistoryService {
       }
     }
   ```
-  - i.e., Any DTO that extends `ReferenceDTO` and is annotated with `@SuperBuilder` will invoke this method, build the synced reference, before the main mapping method builds the POJO and returns it.
+- i.e., Any DTO that extends `ReferenceDTO` and is annotated with `@SuperBuilder` will invoke this method, build the synced reference, before the main mapping method builds the POJO and returns it.
+
+
+#### Validate
+- TODO
+#####  Implementation Details - Where?
+- Using `ConstraintValidator` and custom interface `@ValidReference`
+
+
+### Update ref
+- TODO
+
+
+## Experimentation
+
+We aim for our implementation to be:
+
+1. Generic - It should tailor to:
+   - All data types, not just `String`
+   - All schemas
+2. Ease of use - Since `Reference` should be applied on almost every resource, we should:
+   - Reduce code-duplication
+   - Abstract it appropriately
+3. Intuitive
+4. Sustainable
+5. (Stretch) Efficient
+6. (Stretch) Easy interpretation by clients
+
 
 #### Further improvements
 1. Consider the best place to handle:
