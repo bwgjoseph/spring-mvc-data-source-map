@@ -15,16 +15,6 @@ import java.util.stream.Collectors;
 public abstract class ReferencesDTO {
   List<ReferenceDTO> references;
 
-  public abstract Set<String> getMandatoryReferences();
-
-  public abstract Set<String> getOptionalReferences();
-
-  public Set<String> getAllSupportedReferences() {
-    Set<String> allSupportedReferences = new HashSet<>(getMandatoryReferences());
-    allSupportedReferences.addAll(getOptionalReferences());
-    return allSupportedReferences;
-  }
-
   public Set<String> getContentSetByField(String field) {
     return references
       .stream()

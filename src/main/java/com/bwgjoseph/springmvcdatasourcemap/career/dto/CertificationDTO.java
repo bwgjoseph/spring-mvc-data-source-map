@@ -16,14 +16,4 @@ import java.util.Set;
 public class CertificationDTO extends ReferencesDTO {
     String name;
     String issuedBy;
-
-    @Override
-    public Set<String> getMandatoryReferences() {
-        return Set.of("name", "issuedBy");
-    }
-
-    @Override
-    public Set<String> getOptionalReferences() {
-        return Set.of();
-    }
 }

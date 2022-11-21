@@ -26,13 +26,4 @@ public class CareerHistoryDTO extends ReferencesDTO {
 
     List<@Valid CertificationDTO> certs;
 
-    @Override
-    public Set<String> getMandatoryReferences() {
-        return Set.of("company", "skills[*]");
-    }
-
-    @Override
-    public Set<String> getOptionalReferences() {
-        return Set.of("duration");
-    }
 }

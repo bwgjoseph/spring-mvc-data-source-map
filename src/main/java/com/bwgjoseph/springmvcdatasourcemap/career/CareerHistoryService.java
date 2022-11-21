@@ -27,9 +27,7 @@ public class CareerHistoryService {
 
   public CareerHistory addRecord(CareerHistoryDTO careerHistoryDTO) {
     CareerHistory careerHistory = careerHistoryMapper.toCareerHistory(careerHistoryDTO);
-//    CareerHistory careerHistorySync = syncReferenceByContent(careerHistory);
     return careerHistoryRepository.save(careerHistory);
-//    return careerHistory
   }
 
   public List<CareerHistory> getAllRecords() {

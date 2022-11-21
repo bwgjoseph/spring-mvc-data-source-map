@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 @Builder
 public class SourceDTO {
   LocalDateTime dateObtained;
-
   ReferenceType referenceType;
   String comment;
 

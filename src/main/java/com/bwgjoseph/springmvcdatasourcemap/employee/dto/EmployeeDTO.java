@@ -19,16 +19,6 @@ public class EmployeeDTO extends ReferencesDTO {
     String employeeName;
     String bioNotes;
 
-    @Override
-    public Set<String> getMandatoryReferences() {
-        return Set.of("gender");
-    }
-
-    @Override
-    public Set<String> getOptionalReferences() {
-        return Set.of();
-    }
-
     public enum Gender {FEMALE, MALE}
 
 }
