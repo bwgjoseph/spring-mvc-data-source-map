@@ -25,7 +25,7 @@ public class AppointmentDTO extends ReferencesDTO {
 
     @Override
     public Set<String> getMandatoryReferences() {
-        return Set.of(ATTRIBUTE_TO_OBJ);
+        return Set.of(Fields.position);
     }
 
     @Override
