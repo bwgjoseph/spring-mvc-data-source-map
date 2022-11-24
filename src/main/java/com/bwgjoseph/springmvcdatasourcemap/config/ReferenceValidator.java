@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -86,11 +87,11 @@ public class ReferenceValidator implements ConstraintValidator<ValidReference, O
         String jsonString = objectMapper.writeValueAsString(referencesDTO);
         log.info(jsonString);
 
-        String jsonPath = String.format("$.%s", mandatoryRef);
+        Field field = referencesDTO.getClass().getDeclaredField(mandatoryRef);
 
-        if (jsonPath.contains("[*]")) {
+        if (field.getType().isAssignableFrom(List.class)) {
           List<String> contentList = JsonPath.parse(jsonString)
-            .read(jsonPath);
+            .read(String.format("$.%s[*]", mandatoryRef));
 
           boolean mandatoryContentAbsentInMulti = contentList
             .stream()
@@ -103,7 +104,7 @@ public class ReferenceValidator implements ConstraintValidator<ValidReference, O
 
         } else {
           String content = JsonPath.parse(jsonString)
-            .read(jsonPath);
+            .read(String.format("$.%s", mandatoryRef));
 
           boolean mandatoryContentAbsentInSingle = !contentFromRef.contains(content);
 
@@ -113,7 +114,7 @@ public class ReferenceValidator implements ConstraintValidator<ValidReference, O
           }
         }
 
-      } catch (JsonProcessingException e) {
+      } catch (JsonProcessingException | NoSuchFieldException e) {
         return false;
       }
     }

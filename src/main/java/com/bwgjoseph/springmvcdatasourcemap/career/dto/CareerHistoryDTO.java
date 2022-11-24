@@ -13,7 +13,7 @@ import java.util.Set;
 @Data
 @SuperBuilder
 @NoArgsConstructor
-@ValidReference(mandatoryRefs = {"company", "skills[*]"},
+@ValidReference(mandatoryRefs = {"company", "skills"},
         optionalRefs = {"duration"})
 public class CareerHistoryDTO extends ReferencesDTO {
     String id;
