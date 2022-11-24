@@ -11,113 +11,132 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 public class ReferenceValidator implements ConstraintValidator<ValidReference, Object> {
-  @Autowired
-  ObjectMapper objectMapper;
+    @Autowired
+    ObjectMapper objectMapper;
 
-  Set<String> mandatoryReferences = new HashSet<>();
-  Set<String> optionalReferences = new HashSet<>();
-  Set<String> supportedReferences = new HashSet<>();
+    Set<String> mandatoryReferences = new HashSet<>();
+    Set<String> optionalReferences = new HashSet<>();
+    Set<String> supportedReferences = new HashSet<>();
 
-  @Override
-  public void initialize(ValidReference constraintAnnotation) {
-    ConstraintValidator.super.initialize(constraintAnnotation);
-    mandatoryReferences = Set.of(constraintAnnotation.mandatoryRefs());
-    optionalReferences = Set.of(constraintAnnotation.optionalRefs());
+    @Override
+    public void initialize(ValidReference constraintAnnotation) {
+        ConstraintValidator.super.initialize(constraintAnnotation);
+    }
 
-    supportedReferences.addAll(mandatoryReferences);
-    supportedReferences.addAll(optionalReferences);
-  }
+    /**
+     * TODO: add custom error messages
+     *
+     * @param dto
+     * @param constraintValidatorContext
+     * @return
+     */
+    @Override
+    public boolean isValid(Object dto, ConstraintValidatorContext constraintValidatorContext) {
 
-  /**
-   * TODO: add custom error messages
-   *
-   * @param dto
-   * @param constraintValidatorContext
-   * @return
-   */
-  @Override
-  public boolean isValid(Object dto, ConstraintValidatorContext constraintValidatorContext) {
+        ReferencesDTO refDTO = ReferencesDTO.class.cast(dto);
 
-    ReferencesDTO refDTO = ReferencesDTO.class.cast(dto);
+        mandatoryReferences = refDTO.getMandatoryReferences();
+        optionalReferences = refDTO.getOptionalReferences();
 
-    return isAllSupported(refDTO, constraintValidatorContext) && isMandatoryPresent(refDTO, constraintValidatorContext);
-  }
+        supportedReferences.addAll(mandatoryReferences);
+        supportedReferences.addAll(optionalReferences);
+
+        boolean isAllSupported = isAllSupported(refDTO, constraintValidatorContext);
+        boolean isAllMandatory = isAllMandatoryPresent(refDTO, constraintValidatorContext);
+
+        return isAllSupported && isAllMandatory;
+    }
 
 
-  /**
-   * Check if only supported references exist (i.e., both Mandatory and Optional!)
-   */
-  public boolean isAllSupported(ReferencesDTO referencesDTO, ConstraintValidatorContext constraintContext) {
-    List<String> referenceNotSupportedList
-      = referencesDTO.getReferences().stream()
-      .map(ReferenceDTO::getField)
-      .filter(refField -> !supportedReferences.contains(refField))
-      .toList();
+    /**
+     * Check if only supported references exist (i.e., both Mandatory and Optional!)
+     */
+    public boolean isAllSupported(ReferencesDTO referencesDTO, ConstraintValidatorContext constraintContext) {
+        List<String> referenceNotSupportedList
+                = referencesDTO.getReferences().stream()
+                .map(ReferenceDTO::getField)
+                .filter(refField -> !supportedReferences.contains(refField))
+                .toList();
 
-    log.error("Unsupported present {}", referenceNotSupportedList);
+        log.error("Unsupported present {}", referenceNotSupportedList);
 
-    return referenceNotSupportedList.isEmpty();
-  }
-
-  /**
-   * Check if mandatory references (matching content) exists
-   */
-  public boolean isMandatoryPresent(ReferencesDTO referencesDTO, ConstraintValidatorContext constraintContext) {
-
-    for (String mandatoryRef : mandatoryReferences) {
-      Set<String> contentFromRef = referencesDTO.getContentSetByField(mandatoryRef);
-
-      if (contentFromRef.isEmpty()) {
-        constraintContext.disableDefaultConstraintViolation();
-        constraintContext.buildConstraintViolationWithTemplate(
-            "Reference not present {}"
-          ).addPropertyNode("references")
-          .addConstraintViolation();
-        log.error("Reference not present {}", mandatoryRef);
-        return false;
-      }
-
-      try {
-        String jsonString = objectMapper.writeValueAsString(referencesDTO);
-        log.info(jsonString);
-
-        Field field = referencesDTO.getClass().getDeclaredField(mandatoryRef);
-
-        if (field.getType().isAssignableFrom(List.class)) {
-          List<String> contentList = JsonPath.parse(jsonString)
-            .read(String.format("$.%s[*]", mandatoryRef));
-
-          boolean mandatoryContentAbsentInMulti = contentList
-            .stream()
-            .anyMatch(content -> !contentFromRef.contains(content));
-
-          if (mandatoryContentAbsentInMulti) {
-            log.error("Reference not present {} in multi", mandatoryRef);
+        if (!referenceNotSupportedList.isEmpty()) {
+            String constraintValidation = String.format("Unsupported reference present for %s: %s", referencesDTO.getClass().getSimpleName(), referenceNotSupportedList);
+            constraintContext.disableDefaultConstraintViolation();
+            constraintContext.buildConstraintViolationWithTemplate(
+                            constraintValidation
+                    ).addPropertyNode("references")
+                    .addConstraintViolation();
             return false;
-          }
-
-        } else {
-          String content = JsonPath.parse(jsonString)
-            .read(String.format("$.%s", mandatoryRef));
-
-          boolean mandatoryContentAbsentInSingle = !contentFromRef.contains(content);
-
-          if (mandatoryContentAbsentInSingle) {
-            log.error("Reference not present {} in single", mandatoryRef);
-            return false;
-          }
         }
 
-      } catch (JsonProcessingException | NoSuchFieldException e) {
-        return false;
-      }
+        return true;
     }
-    return true;
-  }
+
+    /**
+     * Check if mandatory references (matching content) exists
+     */
+    public boolean isAllMandatoryPresent(ReferencesDTO referencesDTO, ConstraintValidatorContext constraintContext) {
+
+        Map<String, String> mandatoryReferenceNotPresent = new HashMap<>();
+
+        for (String mandatoryRef : mandatoryReferences) {
+            Set<String> contentFromRef = referencesDTO.getContentSetByField(mandatoryRef);
+
+            if (referencesDTO.isAttributedToObject() && mandatoryRef.equals(ReferencesDTO.ATTRIBUTE_TO_OBJ)) {
+                if (contentFromRef.isEmpty()) {
+                    mandatoryReferenceNotPresent.put(mandatoryRef, mandatoryRef);
+                }
+                continue;
+            }
+
+            try {
+                String jsonString = objectMapper.writeValueAsString(referencesDTO);
+
+                Field field = referencesDTO.getClass().getDeclaredField(mandatoryRef);
+
+                if (field.getType().isAssignableFrom(List.class)) {
+                    List<String> contentList = JsonPath.parse(jsonString)
+                            .read(String.format("$.%s[*]", mandatoryRef));
+
+                    List<String> mandatoryContentAbsentInMulti = contentList
+                            .stream()
+                            .filter(content -> !contentFromRef.contains(content)).toList();
+
+                    if (!mandatoryContentAbsentInMulti.isEmpty()) {
+                        mandatoryContentAbsentInMulti.forEach(absentContent -> mandatoryReferenceNotPresent.put(mandatoryRef, absentContent));
+                    }
+
+                } else {
+                    String content = JsonPath.parse(jsonString)
+                            .read(String.format("$.%s", mandatoryRef));
+
+                    boolean mandatoryContentAbsentInSingle = !contentFromRef.contains(content);
+
+                    if (mandatoryContentAbsentInSingle) {
+                        mandatoryReferenceNotPresent.put(mandatoryRef, content);
+                        log.error("Reference not present {} in single", mandatoryRef);
+                    }
+                }
+
+            } catch (JsonProcessingException | NoSuchFieldException e) {
+                return false;
+            }
+        }
+
+        if (!mandatoryReferenceNotPresent.isEmpty()) {
+            String constraintValidation = String.format("Mandatory reference not present for %s: %s", referencesDTO.getClass().getSimpleName(), mandatoryReferenceNotPresent);
+            constraintContext.disableDefaultConstraintViolation();
+            constraintContext.buildConstraintViolationWithTemplate(
+                            constraintValidation
+                    ).addPropertyNode("references")
+                    .addConstraintViolation();
+            return false;
+        }
+        return true;
+    }
 }
