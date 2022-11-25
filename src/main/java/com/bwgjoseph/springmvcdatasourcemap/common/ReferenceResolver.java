@@ -8,12 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -67,7 +69,30 @@ public class ReferenceResolver {
             inSyncReference = references.stream().map(this::referenceDTOtoReference).toList();
         }
 
-        builder.references(inSyncReference);
+        builder.references(groupByFieldContent(inSyncReference));
+    }
+
+    public List<Reference> groupByFieldContent(List<Reference> references) {
+
+        var fieldContentToSources = references.stream()
+                .collect(Collectors.groupingBy(
+                        ref -> Pair.of(ref.getField(), ref.getContent()),
+                        Collectors.flatMapping
+                                (ref -> ref.getSources().stream(),
+                                        Collectors.toList())));
+
+        return fieldContentToSources.entrySet().stream().map(es -> {
+            Pair<String, String> fieldContentPair = es.getKey();
+            String field = fieldContentPair.getFirst();
+            String content = fieldContentPair.getSecond();
+            List<Source> sources = es.getValue();
+            return Reference.builder()
+                    .field(field)
+                    .content(content)
+                    .sources(sources)
+                    .build();
+        }).toList();
+
     }
 
     public Reference referenceDTOtoReference(ReferenceDTO referenceDTO) {
