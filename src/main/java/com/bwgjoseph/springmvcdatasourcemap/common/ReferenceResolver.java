@@ -12,9 +12,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -23,50 +21,54 @@ public class ReferenceResolver {
     @Autowired
     ObjectMapper objectMapper;
 
-    /**
-     * This method syncs the references of a CareerHistory by removing references which have stale content
-     * <p>
-     * We do it in the last step of converter after field has been mapped, and before the final build method.
-     * <p>
-     * TODO: Consider if it should be done elsewhere:
-     * 2. Further upstream: HandlerInterceptor
-     * 3. Cross-cut concert: interceptor via AOP?
-     **/
     @AfterMapping
     public <T extends ReferencesDTO, S extends References.ReferencesBuilder<?, ?>> void syncReference(T baseDTO, @MappingTarget S builder) {
         List<Reference> inSyncReference = new ArrayList<>();
-        List<ReferenceDTO> references = baseDTO.getReferences();
+        Set<String> supportedReferences = baseDTO.getSupportedReferences();
 
+        Map<String, String> fieldDTOtoFieldDOMapping = baseDTO.getFieldDTOtoFieldDOMapping();
+        List<ReferenceDTO> references = baseDTO
+                .getReferences()
+                .stream()
+                .filter(ref -> supportedReferences.contains(ref.getField()))
+                .toList();
 
         try {
             String jsonString = objectMapper.writeValueAsString(baseDTO);
 
             for (ReferenceDTO ref : references) {
-                String jsonPath = ref.getField();
-                log.info("JSON PATH {}", jsonPath);
+                String field = ref.getField();
+                String convertedField = fieldDTOtoFieldDOMapping.getOrDefault(field, field);
 
-                Field field = baseDTO.getClass().getDeclaredField(jsonPath);
+                log.info("JSON PATH {}", field);
 
-                if (field.getType().isAssignableFrom(List.class)) {
+                if (baseDTO.isAttributedToObject()) {
+                    inSyncReference.add(referenceDTOtoReference(ref, convertedField));
+                    continue;
+                }
+
+                Field declaredField = baseDTO.getClass().getDeclaredField(field);
+
+                if (declaredField.getType().isAssignableFrom(List.class)) {
                     List<String> contentList = JsonPath.parse(jsonString)
-                            .read(String.format("$.%s[*]", jsonPath));
+                            .read(String.format("$.%s[*]", field));
                     if (contentList != null && contentList.contains(ref.getContent())) {
-                        inSyncReference.add(referenceDTOtoReference(ref));
+                        inSyncReference.add(referenceDTOtoReference(ref, convertedField));
                     }
                 } else {
 
                     String content = JsonPath.parse(jsonString)
-                            .read(String.format("$.%s", jsonPath));
+                            .read(String.format("$.%s", field));
 
                     if (content != null && content.equals(ref.getContent())) {
-                        inSyncReference.add(referenceDTOtoReference(ref));
+                        inSyncReference.add(referenceDTOtoReference(ref, convertedField));
                     }
                 }
             }
 
         } catch (JsonProcessingException | NoSuchFieldException e) {
             e.printStackTrace();
-            inSyncReference = references.stream().map(this::referenceDTOtoReference).toList();
+            inSyncReference = references.stream().map(ref -> referenceDTOtoReference(ref, ref.getField())).toList();
         }
 
         builder.references(groupByFieldContent(inSyncReference));
@@ -95,13 +97,13 @@ public class ReferenceResolver {
 
     }
 
-    public Reference referenceDTOtoReference(ReferenceDTO referenceDTO) {
+    public Reference referenceDTOtoReference(ReferenceDTO referenceDTO, String field) {
         if (referenceDTO == null) {
             return null;
         }
 
         return Reference.builder()
-                .field(referenceDTO.getField())
+                .field(field)
                 .content(referenceDTO.getContent())
                 .sources(sourceDTOListSourceList(referenceDTO.sources))
                 .build();
@@ -132,4 +134,112 @@ public class ReferenceResolver {
                 .build();
     }
 
+    @AfterMapping
+    public <T extends References, S extends ReferencesDTO.ReferencesDTOBuilder<?, ?>> void syncReferenceDTO(T baseDTO, @MappingTarget S builder) {
+        ReferencesDTO refDTO = builder.build();
+        List<ReferenceDTO> inSyncReference = new ArrayList<>();
+
+        Map<String, String> fieldDOtoFieldDTOMapping = refDTO.getFieldDOtoFieldDTOMapping();
+
+        Set<String> supportedReferences = refDTO.getSupportedReferences();
+        List<Reference> references = baseDTO
+                .getReferences()
+                .stream()
+                .filter(ref -> supportedReferences.contains(fieldDOtoFieldDTOMapping.getOrDefault(ref.getField(), ref.getField())))
+                .toList();
+
+        try {
+            String jsonString = objectMapper.writeValueAsString(baseDTO);
+
+            for (Reference ref : references) {
+                String field = ref.getField();
+
+                String convertedField = fieldDOtoFieldDTOMapping.getOrDefault(field, field);
+                log.info("JSON PATH {}", field);
+
+
+                if (refDTO.isAttributedToObject()) {
+                    inSyncReference.add(referenceToReferenceDTO(ref, convertedField));
+                    continue;
+                }
+
+                Optional<Field> declaredField = recursivelyFindField(field, baseDTO);
+
+                if (declaredField.isEmpty()) {
+                    throw new RuntimeException("Invalid la");
+                }
+
+                if (declaredField.get().getType().isAssignableFrom(List.class)) {
+                    List<String> contentList = JsonPath.parse(jsonString)
+                            .read(String.format("$.%s[*]", field));
+                    if (contentList != null && contentList.contains(ref.getContent())) {
+                        inSyncReference.add(referenceToReferenceDTO(ref, convertedField));
+                    }
+                } else {
+
+                    String content = JsonPath.parse(jsonString)
+                            .read(String.format("$.%s", field));
+
+                    if (content != null && content.equals(ref.getContent())) {
+                        inSyncReference.add(referenceToReferenceDTO(ref, convertedField));
+                    }
+                }
+            }
+
+        } catch (JsonProcessingException | NoSuchFieldException e) {
+            e.printStackTrace();
+            inSyncReference = references.stream().map(ref -> referenceToReferenceDTO(ref, ref.getField())).toList();
+        }
+
+        builder.references(inSyncReference);
+    }
+
+    public <T extends References> Optional<Field> recursivelyFindField(String jsonPath, T baseDTO) throws NoSuchFieldException {
+        String[] fieldPaths = jsonPath.split("\\.");
+
+        Field field = null;
+        Class<?> clazz = baseDTO.getClass();
+        for (String fieldPath : fieldPaths) {
+            field = clazz.getDeclaredField(fieldPath);
+            clazz = field.getType();
+        }
+        return Optional.ofNullable(field);
+    }
+
+    public ReferenceDTO referenceToReferenceDTO(Reference reference, String field) {
+        if (reference == null) {
+            return null;
+        }
+
+        return ReferenceDTO.builder()
+                .field(field)
+                .content(reference.getContent())
+                .sources(sourceListToSourceDTOList(reference.sources))
+                .build();
+    }
+
+    public List<SourceDTO> sourceListToSourceDTOList(List<Source> list) {
+        if (list == null) {
+            return null;
+        } else {
+            List<SourceDTO> list1 = new ArrayList(list.size());
+            Iterator var3 = list.iterator();
+
+            while (var3.hasNext()) {
+                Source source = (Source) var3.next();
+                list1.add(this.map(source));
+            }
+
+            return list1;
+        }
+    }
+
+    public SourceDTO map(Source source) {
+        return SourceDTO
+                .builder()
+                .referenceType(source.referenceType)
+                .dateObtained(source.dateObtained)
+                .comment(source.comment)
+                .build();
+    }
 }
