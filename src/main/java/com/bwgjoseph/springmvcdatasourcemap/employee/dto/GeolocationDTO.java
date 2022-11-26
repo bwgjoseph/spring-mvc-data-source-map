@@ -2,11 +2,13 @@ package com.bwgjoseph.springmvcdatasourcemap.employee.dto;
 
 import com.bwgjoseph.springmvcdatasourcemap.common.ReferencesDTO;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Set;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
 @NoArgsConstructor

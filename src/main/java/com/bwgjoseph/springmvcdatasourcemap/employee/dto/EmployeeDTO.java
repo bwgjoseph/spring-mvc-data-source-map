@@ -4,6 +4,7 @@ import com.bwgjoseph.springmvcdatasourcemap.common.ReferencesDTO;
 import com.bwgjoseph.springmvcdatasourcemap.config.ValidReference;
 import com.bwgjoseph.springmvcdatasourcemap.employee.domain.Country;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import lombok.experimental.SuperBuilder;
@@ -16,6 +17,7 @@ import java.util.Set;
 @NoArgsConstructor
 @ValidReference
 @FieldNameConstants
+@EqualsAndHashCode(callSuper = true)
 public class EmployeeDTO extends ReferencesDTO {
     String id;
     Gender gender;
