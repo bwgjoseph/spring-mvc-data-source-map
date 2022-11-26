@@ -19,4 +19,6 @@ public class Employee extends References {
     com.bwgjoseph.springmvcdatasourcemap.employee.dto.EmployeeDTO.Gender gender;
     String employeeName;
     String bioNotes;
+    Geolocation address;
+    Country nationality;
 }
