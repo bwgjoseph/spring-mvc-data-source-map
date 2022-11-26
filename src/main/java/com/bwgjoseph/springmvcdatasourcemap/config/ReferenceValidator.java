@@ -37,13 +37,11 @@ public class ReferenceValidator implements ConstraintValidator<ValidReference, O
     @Override
     public boolean isValid(Object dto, ConstraintValidatorContext constraintValidatorContext) {
 
-        ReferencesDTO refDTO = ReferencesDTO.class.cast(dto);
+        ReferencesDTO refDTO = (ReferencesDTO) dto;
 
         mandatoryReferences = refDTO.getMandatoryReferences();
         optionalReferences = refDTO.getOptionalReferences();
-
-        supportedReferences.addAll(mandatoryReferences);
-        supportedReferences.addAll(optionalReferences);
+        supportedReferences = refDTO.getSupportedReferences();
 
         boolean isAllSupported = isAllSupported(refDTO, constraintValidatorContext);
         boolean isAllMandatory = isAllMandatoryPresent(refDTO, constraintValidatorContext);

@@ -19,26 +19,34 @@ public class CareerHistoryService {
     private final CareerHistoryRepository careerHistoryRepository;
     private final CareerHistoryMapper careerHistoryMapper;
 
-    public CareerHistory addRecord(CareerHistoryDTO careerHistoryDTO) {
+    public CareerHistoryDTO addRecord(CareerHistoryDTO careerHistoryDTO) {
         CareerHistory careerHistory = careerHistoryMapper.toCareerHistory(careerHistoryDTO);
-        return careerHistoryRepository.save(careerHistory);
+        CareerHistory careerHistoryCreated = careerHistoryRepository.save(careerHistory);
+        return careerHistoryMapper.toCareerHistoryDTO(careerHistoryCreated);
     }
 
-    public List<CareerHistory> getAllRecords() {
-        return careerHistoryRepository.findAll();
+    public List<CareerHistoryDTO> getAllRecords() {
+        return careerHistoryRepository
+                .findAll()
+                .stream()
+                .map(careerHistoryMapper::toCareerHistoryDTO)
+                .toList();
     }
 
-    public Optional<CareerHistory> getRecordById(String id) {
-        return careerHistoryRepository.findById(id);
+    public Optional<CareerHistoryDTO> getRecordById(String id) {
+        Optional<CareerHistory> careerHistory = careerHistoryRepository.findById(id);
+        return careerHistory.map(careerHistoryMapper::toCareerHistoryDTO);
     }
 
-    public CareerHistory updateRecord(String id, CareerHistoryDTO newCareerHistoryDTO) {
-        Optional<CareerHistory> careerHistory = getRecordById(id);
+    public CareerHistoryDTO updateRecord(String id, CareerHistoryDTO newCareerHistoryDTO) {
+        Optional<CareerHistory> careerHistory = careerHistoryRepository.findById(id);
 
         if (careerHistory.isEmpty()) throw new IllegalArgumentException("Not found");
 
         CareerHistory newCareerHistory = careerHistoryMapper.toCareerHistory(newCareerHistoryDTO);
-        return careerHistoryRepository.save(newCareerHistory);
+        CareerHistory createdCareerHistory = careerHistoryRepository.save(newCareerHistory);
+
+        return careerHistoryMapper.toCareerHistoryDTO(createdCareerHistory);
     }
 
 

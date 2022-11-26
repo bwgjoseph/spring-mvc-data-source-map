@@ -15,25 +15,33 @@ import java.util.Optional;
 @Transactional
 @RequiredArgsConstructor
 public class EmployeeService {
-  private final EmployeeRepository employeeRepository;
-  private final EmployeeMapper employeeMapper;
+    private final EmployeeRepository employeeRepository;
+    private final EmployeeMapper employeeMapper;
 
-  public Employee addRecord(EmployeeDTO employeeDTO) {
-    Employee employee = employeeMapper.toEmployee(employeeDTO);
-    return employeeRepository.save(employee);
-  }
-  public List<Employee> getAllRecords() {
-    return employeeRepository.findAll();
-  }
-  public Optional<Employee> getRecordById(String id) {
-    return employeeRepository.findById(id);
-  }
+    public EmployeeDTO addRecord(EmployeeDTO employeeDTO) {
+        Employee employee = employeeMapper.toEmployee(employeeDTO);
+        Employee createdEmployee = employeeRepository.save(employee);
+        return employeeMapper.toEmployeeDTO(createdEmployee);
+    }
 
-  public Employee updateRecord(String id, EmployeeDTO newEmployeeDTO) {
-    Optional<Employee> employee = getRecordById(id);
-    if(employee.isEmpty()) throw new IllegalArgumentException("Not found");
+    public List<EmployeeDTO> getAllRecords() {
+        return employeeRepository.findAll()
+                .stream()
+                .map(employeeMapper::toEmployeeDTO)
+                .toList();
+    }
 
-    Employee newEmployee = employeeMapper.toEmployee(newEmployeeDTO);
-    return employeeRepository.save(newEmployee);
-  }
+    public Optional<EmployeeDTO> getRecordById(String id) {
+        Optional<Employee> employee = employeeRepository.findById(id);
+        return employee.map(employeeMapper::toEmployeeDTO);
+    }
+
+    public EmployeeDTO updateRecord(String id, EmployeeDTO newEmployeeDTO) {
+        Optional<Employee> employee = employeeRepository.findById(id);
+        if (employee.isEmpty()) throw new IllegalArgumentException("Not found");
+
+        Employee newEmployee = employeeMapper.toEmployee(newEmployeeDTO);
+        Employee createdEmployee = employeeRepository.save(newEmployee);
+        return employeeMapper.toEmployeeDTO(createdEmployee);
+    }
 }

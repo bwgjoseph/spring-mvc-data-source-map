@@ -16,13 +16,12 @@ import java.util.List;
 @Document(collection = "career")
 @NoArgsConstructor
 public class CareerHistory extends References {
-  @MongoId
-  String id;
-  String company;
-  Appointment appointment;
-  String duration;
-  String lastDrawnSalary;
-  List<String> skills;
-  List<Certification> certs;
-
+    @MongoId
+    String id;
+    String company;
+    Appointment appointment;
+    String duration;
+    String lastDrawnSalary;
+    List<String> skills;
+    List<Certification> certs;
 }
