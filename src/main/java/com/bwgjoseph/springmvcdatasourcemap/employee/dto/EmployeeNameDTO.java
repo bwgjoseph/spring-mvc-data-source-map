@@ -2,22 +2,19 @@ package com.bwgjoseph.springmvcdatasourcemap.employee.dto;
 
 import com.bwgjoseph.springmvcdatasourcemap.common.ReferencesDTO;
 import com.bwgjoseph.springmvcdatasourcemap.config.ValidReference;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
-import java.util.Map;
 import java.util.Set;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-@SuperBuilder
-@NoArgsConstructor
+@Builder
 @ValidReference
-public class GeolocationDTO extends ReferencesDTO {
-  double longitude;
-  double latitude;
+@EqualsAndHashCode(callSuper = true)
+public class EmployeeNameDTO extends ReferencesDTO {
+  String firstName;
+  String lastName;
 
   @Override
   public boolean isAttributedToObject() {
