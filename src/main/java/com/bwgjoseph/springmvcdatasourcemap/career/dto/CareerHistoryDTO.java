@@ -3,6 +3,7 @@ package com.bwgjoseph.springmvcdatasourcemap.career.dto;
 import com.bwgjoseph.springmvcdatasourcemap.common.ReferencesDTO;
 import com.bwgjoseph.springmvcdatasourcemap.config.ValidReference;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import lombok.experimental.SuperBuilder;
@@ -11,6 +12,7 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Set;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @FieldNameConstants
 @SuperBuilder

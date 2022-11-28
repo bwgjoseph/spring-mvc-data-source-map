@@ -13,26 +13,27 @@ import org.mapstruct.Mapping;
 
 @Mapper(uses = {ReferenceResolver.class})
 public interface CareerHistoryMapper {
-  /**
-   * From DTO to Domain object
-   *
-   * @param careerHistoryDTO
-   * @return domain object stored in db
-   */
-  @Mapping(target = "references", ignore = true)
-  CareerHistory toCareerHistory(CareerHistoryDTO careerHistoryDTO);
+    /**
+     * From DTO to Domain object
+     *
+     * @param careerHistoryDTO
+     * @return domain object stored in db
+     */
+    @Mapping(target = "references", ignore = true)
+    CareerHistory toCareerHistory(CareerHistoryDTO careerHistoryDTO);
 
-  /**
-   * From Domain object to DTO
-   *
-   * @param careerHistory domain object from db
-   * @return DTO object returned
-   */
-  @InheritInverseConfiguration
-  CareerHistoryDTO toCareerHistoryDTO(CareerHistory careerHistory);
+    /**
+     * From Domain object to DTO
+     *
+     * @param careerHistory domain object from db
+     * @return DTO object returned
+     */
+    @Mapping(target = "references", ignore = true)
+    @InheritInverseConfiguration
+    CareerHistoryDTO toCareerHistoryDTO(CareerHistory careerHistory);
 
-  // Mapping inner classes
-  Certification map(CertificationDTO value);
+    // Mapping inner classes
+    Certification map(CertificationDTO value);
 
-  Appointment map(AppointmentDTO value);
+    Appointment map(AppointmentDTO value);
 }

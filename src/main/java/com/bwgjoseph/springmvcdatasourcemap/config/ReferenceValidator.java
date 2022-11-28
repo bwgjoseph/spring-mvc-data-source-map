@@ -37,13 +37,11 @@ public class ReferenceValidator implements ConstraintValidator<ValidReference, O
     @Override
     public boolean isValid(Object dto, ConstraintValidatorContext constraintValidatorContext) {
 
-        ReferencesDTO refDTO = ReferencesDTO.class.cast(dto);
+        ReferencesDTO refDTO = (ReferencesDTO) dto;
 
         mandatoryReferences = refDTO.getMandatoryReferences();
         optionalReferences = refDTO.getOptionalReferences();
-
-        supportedReferences.addAll(mandatoryReferences);
-        supportedReferences.addAll(optionalReferences);
+        supportedReferences = refDTO.getSupportedReferences();
 
         boolean isAllSupported = isAllSupported(refDTO, constraintValidatorContext);
         boolean isAllMandatory = isAllMandatoryPresent(refDTO, constraintValidatorContext);
@@ -82,14 +80,14 @@ public class ReferenceValidator implements ConstraintValidator<ValidReference, O
      */
     public boolean isAllMandatoryPresent(ReferencesDTO referencesDTO, ConstraintValidatorContext constraintContext) {
 
-        Map<String, String> mandatoryReferenceNotPresent = new HashMap<>();
+        Map<String, List<String>> mandatoryReferenceNotPresent = new HashMap<>();
 
         for (String mandatoryRef : mandatoryReferences) {
             Set<String> contentFromRef = referencesDTO.getContentSetByField(mandatoryRef);
 
             if (referencesDTO.isAttributedToObject() && mandatoryRef.equals(ReferencesDTO.ATTRIBUTE_TO_OBJ)) {
                 if (contentFromRef.isEmpty()) {
-                    mandatoryReferenceNotPresent.put(mandatoryRef, mandatoryRef);
+                    mandatoryReferenceNotPresent.put(mandatoryRef, List.of(mandatoryRef));
                 }
                 continue;
             }
@@ -108,7 +106,7 @@ public class ReferenceValidator implements ConstraintValidator<ValidReference, O
                             .filter(content -> !contentFromRef.contains(content)).toList();
 
                     if (!mandatoryContentAbsentInMulti.isEmpty()) {
-                        mandatoryContentAbsentInMulti.forEach(absentContent -> mandatoryReferenceNotPresent.put(mandatoryRef, absentContent));
+                        mandatoryReferenceNotPresent.put(mandatoryRef, mandatoryContentAbsentInMulti);
                     }
 
                 } else {
@@ -118,7 +116,7 @@ public class ReferenceValidator implements ConstraintValidator<ValidReference, O
                     boolean mandatoryContentAbsentInSingle = !contentFromRef.contains(content);
 
                     if (mandatoryContentAbsentInSingle) {
-                        mandatoryReferenceNotPresent.put(mandatoryRef, content);
+                        mandatoryReferenceNotPresent.put(mandatoryRef, List.of(content));
                         log.error("Reference not present {} in single", mandatoryRef);
                     }
                 }
