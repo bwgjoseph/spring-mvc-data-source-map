@@ -42,7 +42,7 @@ public class ReferenceResolver {
 
                 log.info("JSON PATH {}", field);
 
-                if (baseDTO.isAttributedToObject()) {
+                if (baseDTO.isAttributedToObjectInferred()) {
                     inSyncReference.add(referenceDTOtoReference(ref, convertedField));
                     continue;
                 }
@@ -158,7 +158,7 @@ public class ReferenceResolver {
                 log.info("JSON PATH {}", field);
 
 
-                if (refDTO.isAttributedToObject()) {
+                if (refDTO.isAttributedToObjectInferred()) {
                     inSyncReference.add(referenceToReferenceDTO(ref, convertedField));
                     continue;
                 }

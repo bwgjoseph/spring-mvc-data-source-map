@@ -16,14 +16,9 @@ import java.util.Set;
 @SuperBuilder
 @FieldNameConstants
 @ValidReference
-public class CertificationDTO extends ReferencesDTO {
+public class CertificationToFieldDTO extends ReferencesDTO {
     String name;
     String issuedBy;
-
-    @Override
-    public boolean isAttributedToObject() {
-        return false;
-    }
 
     @Override
     public Set<String> getMandatoryReferences() {

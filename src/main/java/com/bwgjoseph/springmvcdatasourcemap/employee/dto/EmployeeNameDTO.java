@@ -16,10 +16,6 @@ public class EmployeeNameDTO extends ReferencesDTO {
   String firstName;
   String lastName;
 
-  @Override
-  public boolean isAttributedToObject() {
-    return true;
-  }
 
   @Override
   public Set<String> getMandatoryReferences() {

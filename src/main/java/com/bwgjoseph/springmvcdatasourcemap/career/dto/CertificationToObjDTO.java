@@ -8,35 +8,26 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import lombok.experimental.SuperBuilder;
 
-import javax.validation.Valid;
-import java.util.List;
 import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@FieldNameConstants
-@SuperBuilder
 @NoArgsConstructor
+@SuperBuilder
+@FieldNameConstants
 @ValidReference
-public class CareerHistoryDTO extends ReferencesDTO {
-    String id;
-    String company;
+public class CertificationToObjDTO extends ReferencesDTO {
+    String name;
+    String issuedBy;
 
-    @Valid AppointmentDTO appointment;
-    String duration;
-    String lastDrawnSalary;
-    List<String> skills;
-
-    List<@Valid CertificationToFieldDTO> certsToField;
-    List<@Valid CertificationToObjDTO> certsToObj;
 
     @Override
     public Set<String> getMandatoryReferences() {
-        return Set.of(Fields.company, Fields.skills);
+        return Set.of(ATTRIBUTE_TO_OBJ);
     }
 
     @Override
     public Set<String> getOptionalReferences() {
-        return Set.of(Fields.duration);
+        return Set.of();
     }
 }
