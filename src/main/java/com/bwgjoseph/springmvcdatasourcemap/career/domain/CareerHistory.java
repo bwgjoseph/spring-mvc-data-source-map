@@ -25,5 +25,6 @@ public class CareerHistory extends References {
     String duration;
     String lastDrawnSalary;
     List<String> skills;
-    List<Certification> certs;
+    List<Certification> certsToField;
+    List<Certification> certsToObj;
 }

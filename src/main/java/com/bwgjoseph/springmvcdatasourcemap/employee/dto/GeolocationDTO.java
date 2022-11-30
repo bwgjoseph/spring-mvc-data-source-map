@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import java.util.Map;
 import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
@@ -19,10 +18,6 @@ public class GeolocationDTO extends ReferencesDTO {
   double longitude;
   double latitude;
 
-  @Override
-  public boolean isAttributedToObject() {
-    return true;
-  }
 
   @Override
   public Set<String> getMandatoryReferences() {

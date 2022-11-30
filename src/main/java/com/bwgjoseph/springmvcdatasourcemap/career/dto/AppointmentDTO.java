@@ -21,11 +21,6 @@ public class AppointmentDTO extends ReferencesDTO {
     String rank;
 
     @Override
-    public boolean isAttributedToObject() {
-        return true;
-    }
-
-    @Override
     public Set<String> getMandatoryReferences() {
         return Set.of(Fields.position);
     }

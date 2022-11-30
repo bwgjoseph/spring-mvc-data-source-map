@@ -85,7 +85,7 @@ public class ReferenceValidator implements ConstraintValidator<ValidReference, O
         for (String mandatoryRef : mandatoryReferences) {
             Set<String> contentFromRef = referencesDTO.getContentSetByField(mandatoryRef);
 
-            if (referencesDTO.isAttributedToObject() && mandatoryRef.equals(ReferencesDTO.ATTRIBUTE_TO_OBJ)) {
+            if (referencesDTO.isAttributedToObjectInferred() && mandatoryRef.equals(ReferencesDTO.ATTRIBUTE_TO_OBJ)) {
                 if (contentFromRef.isEmpty()) {
                     mandatoryReferenceNotPresent.put(mandatoryRef, List.of(mandatoryRef));
                 }

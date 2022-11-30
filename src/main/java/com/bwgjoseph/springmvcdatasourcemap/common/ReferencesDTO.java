@@ -39,10 +39,7 @@ public abstract class ReferencesDTO {
     }
 
     @JsonIgnore
-    public abstract boolean isAttributedToObject();
-
-    @JsonIgnore
-    public boolean isAttributedToObjectInferred() {
+    public final boolean isAttributedToObjectInferred() {
         Set<String> attributeToObj = Set.of(ATTRIBUTE_TO_OBJ);
         return getMandatoryReferences().equals(attributeToObj)
                 || getOptionalReferences().equals(attributeToObj);

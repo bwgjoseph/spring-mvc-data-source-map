@@ -5,7 +5,8 @@ import com.bwgjoseph.springmvcdatasourcemap.career.domain.CareerHistory;
 import com.bwgjoseph.springmvcdatasourcemap.career.domain.Certification;
 import com.bwgjoseph.springmvcdatasourcemap.career.dto.AppointmentDTO;
 import com.bwgjoseph.springmvcdatasourcemap.career.dto.CareerHistoryDTO;
-import com.bwgjoseph.springmvcdatasourcemap.career.dto.CertificationDTO;
+import com.bwgjoseph.springmvcdatasourcemap.career.dto.CertificationToFieldDTO;
+import com.bwgjoseph.springmvcdatasourcemap.career.dto.CertificationToObjDTO;
 import com.bwgjoseph.springmvcdatasourcemap.common.ReferenceResolver;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
@@ -33,7 +34,9 @@ public interface CareerHistoryMapper {
     CareerHistoryDTO toCareerHistoryDTO(CareerHistory careerHistory);
 
     // Mapping inner classes
-    Certification map(CertificationDTO value);
+    Certification map(CertificationToFieldDTO value);
+
+    Certification map(CertificationToObjDTO value);
 
     Appointment map(AppointmentDTO value);
 }
