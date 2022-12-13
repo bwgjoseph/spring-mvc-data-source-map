@@ -1,22 +1,21 @@
 package com.bwgjoseph.springmvcdatasourcemap.career.dto;
 
-import com.bwgjoseph.springmvcdatasourcemap.common.ReferencesDTO;
-import com.bwgjoseph.springmvcdatasourcemap.config.ValidReference;
+import com.bwgjoseph.springmvcdatasourcemap.common.Referenceable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
-import lombok.experimental.SuperBuilder;
 
 import java.util.Set;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
-@SuperBuilder
+@Builder
 @FieldNameConstants
-@ValidReference
-public class AppointmentDTO extends ReferencesDTO {
+@NoArgsConstructor
+@AllArgsConstructor
+public class AppointmentDTO
+        implements Referenceable {
     String position;
     String rank;
 

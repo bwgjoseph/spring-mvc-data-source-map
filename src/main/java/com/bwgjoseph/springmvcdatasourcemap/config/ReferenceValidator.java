@@ -1,17 +1,17 @@
 package com.bwgjoseph.springmvcdatasourcemap.config;
 
-import com.bwgjoseph.springmvcdatasourcemap.common.ReferenceDTO;
-import com.bwgjoseph.springmvcdatasourcemap.common.ReferencesDTO;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.bwgjoseph.springmvcdatasourcemap.common.ReferenceToFieldDTO;
+import com.bwgjoseph.springmvcdatasourcemap.common.ReferencesToFieldDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class ReferenceValidator implements ConstraintValidator<ValidReference, Object> {
@@ -37,7 +37,7 @@ public class ReferenceValidator implements ConstraintValidator<ValidReference, O
     @Override
     public boolean isValid(Object dto, ConstraintValidatorContext constraintValidatorContext) {
 
-        ReferencesDTO refDTO = (ReferencesDTO) dto;
+        ReferencesToFieldDTO<?> refDTO = (ReferencesToFieldDTO<?>) dto;
 
         mandatoryReferences = refDTO.getMandatoryReferences();
         optionalReferences = refDTO.getOptionalReferences();
@@ -53,17 +53,17 @@ public class ReferenceValidator implements ConstraintValidator<ValidReference, O
     /**
      * Check if only supported references exist (i.e., both Mandatory and Optional!)
      */
-    public boolean isAllSupported(ReferencesDTO referencesDTO, ConstraintValidatorContext constraintContext) {
+    public boolean isAllSupported(ReferencesToFieldDTO<?> referencesDTO, ConstraintValidatorContext constraintContext) {
         List<String> referenceNotSupportedList
                 = referencesDTO.getReferences().stream()
-                .map(ReferenceDTO::getField)
+                .map(ReferenceToFieldDTO::getAppliedTo)
                 .filter(refField -> !supportedReferences.contains(refField))
                 .toList();
 
         log.error("Unsupported present {}", referenceNotSupportedList);
 
         if (!referenceNotSupportedList.isEmpty()) {
-            String constraintValidation = String.format("Unsupported reference present for %s: %s", referencesDTO.getClass().getSimpleName(), referenceNotSupportedList);
+            String constraintValidation = String.format("Unsupported reference present for %s: %s", referencesDTO.getValue().getClass().getSimpleName(), referenceNotSupportedList);
             constraintContext.disableDefaultConstraintViolation();
             constraintContext.buildConstraintViolationWithTemplate(
                             constraintValidation
@@ -76,58 +76,19 @@ public class ReferenceValidator implements ConstraintValidator<ValidReference, O
     }
 
     /**
-     * Check if mandatory references (matching content) exists
+     * Check if mandatory references exists
      */
-    public boolean isAllMandatoryPresent(ReferencesDTO referencesDTO, ConstraintValidatorContext constraintContext) {
+    public boolean isAllMandatoryPresent(ReferencesToFieldDTO<?> referencesDTO, ConstraintValidatorContext constraintContext) {
 
-        Map<String, List<String>> mandatoryReferenceNotPresent = new HashMap<>();
+        Set<String> refPresent = referencesDTO.getReferences().stream().map(ReferenceToFieldDTO::getAppliedTo).collect(Collectors.toSet());
 
-        for (String mandatoryRef : mandatoryReferences) {
-            Set<String> contentFromRef = referencesDTO.getContentSetByField(mandatoryRef);
+        Set<String> mandatoryRefMissing = mandatoryReferences
+                .stream()
+                .filter(s -> !refPresent.contains(s))
+                .collect(Collectors.toSet());
 
-            if (referencesDTO.isAttributedToObjectInferred() && mandatoryRef.equals(ReferencesDTO.ATTRIBUTE_TO_OBJ)) {
-                if (contentFromRef.isEmpty()) {
-                    mandatoryReferenceNotPresent.put(mandatoryRef, List.of(mandatoryRef));
-                }
-                continue;
-            }
-
-            try {
-                String jsonString = objectMapper.writeValueAsString(referencesDTO);
-
-                Field field = referencesDTO.getClass().getDeclaredField(mandatoryRef);
-
-                if (field.getType().isAssignableFrom(List.class)) {
-                    List<String> contentList = JsonPath.parse(jsonString)
-                            .read(String.format("$.%s[*]", mandatoryRef));
-
-                    List<String> mandatoryContentAbsentInMulti = contentList
-                            .stream()
-                            .filter(content -> !contentFromRef.contains(content)).toList();
-
-                    if (!mandatoryContentAbsentInMulti.isEmpty()) {
-                        mandatoryReferenceNotPresent.put(mandatoryRef, mandatoryContentAbsentInMulti);
-                    }
-
-                } else {
-                    String content = JsonPath.parse(jsonString)
-                            .read(String.format("$.%s", mandatoryRef));
-
-                    boolean mandatoryContentAbsentInSingle = !contentFromRef.contains(content);
-
-                    if (mandatoryContentAbsentInSingle) {
-                        mandatoryReferenceNotPresent.put(mandatoryRef, List.of(content));
-                        log.error("Reference not present {} in single", mandatoryRef);
-                    }
-                }
-
-            } catch (JsonProcessingException | NoSuchFieldException e) {
-                return false;
-            }
-        }
-
-        if (!mandatoryReferenceNotPresent.isEmpty()) {
-            String constraintValidation = String.format("Mandatory reference not present for %s: %s", referencesDTO.getClass().getSimpleName(), mandatoryReferenceNotPresent);
+        if (!mandatoryRefMissing.isEmpty()) {
+            String constraintValidation = String.format("Mandatory reference not present for %s: %s", referencesDTO.getClass().getSimpleName(), mandatoryRefMissing);
             constraintContext.disableDefaultConstraintViolation();
             constraintContext.buildConstraintViolationWithTemplate(
                             constraintValidation

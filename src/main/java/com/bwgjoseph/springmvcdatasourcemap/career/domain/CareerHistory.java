@@ -1,30 +1,26 @@
 package com.bwgjoseph.springmvcdatasourcemap.career.domain;
 
-import com.bwgjoseph.springmvcdatasourcemap.common.References;
+import com.bwgjoseph.springmvcdatasourcemap.common.ReferencesToField;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @TypeAlias("careerHistory")
-@SuperBuilder(toBuilder = true)
 @Document(collection = "career")
-@NoArgsConstructor
-public class CareerHistory extends References {
+@Builder
+public class CareerHistory {
     @MongoId
     String id;
-    String company;
-    Appointment appointment;
+    ReferencesToField<Company> company;
+    ReferencesToField<Appointment> appointment;
     String duration;
     String lastDrawnSalary;
-    List<String> skills;
-    List<Certification> certsToField;
-    List<Certification> certsToObj;
+    List<ReferencesToField<Skill>> skills;
+    //    List<Certification> certsToField;
+    List<ReferencesToField<Certification>> certs;
 }

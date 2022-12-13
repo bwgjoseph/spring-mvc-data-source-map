@@ -5,7 +5,6 @@ import lombok.Data;
 
 @Data
 @Builder
-public class Appointment {
-    String position;
-    String rank;
+public class Company {
+    String company;
 }

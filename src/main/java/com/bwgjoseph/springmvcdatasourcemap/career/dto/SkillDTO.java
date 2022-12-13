@@ -9,21 +9,17 @@ import lombok.experimental.FieldNameConstants;
 
 import java.util.Set;
 
-import static com.bwgjoseph.springmvcdatasourcemap.common.ReferencesToFieldDTO.ATTRIBUTE_TO_OBJ;
-
 @Data
 @FieldNameConstants
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CertificationToObjDTO
-        implements Referenceable {
-    String name;
-    String issuedBy;
+public class SkillDTO implements Referenceable {
+    String skill;
 
     @Override
     public Set<String> getMandatoryReferences() {
-        return Set.of(ATTRIBUTE_TO_OBJ);
+        return Set.of(Fields.skill);
     }
 
     @Override

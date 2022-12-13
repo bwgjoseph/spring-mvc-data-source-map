@@ -1,16 +1,11 @@
 package com.bwgjoseph.springmvcdatasourcemap.career.domain;
 
-import com.bwgjoseph.springmvcdatasourcemap.common.References;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-@SuperBuilder
-@NoArgsConstructor
-public class Certification extends References {
+@Builder
+public class Certification {
     String name;
     String issuedBy;
 }
