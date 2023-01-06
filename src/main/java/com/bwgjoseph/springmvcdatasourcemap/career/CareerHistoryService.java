@@ -16,38 +16,38 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CareerHistoryService {
 
-    private final CareerHistoryRepository careerHistoryRepository;
-    private final CareerHistoryMapper careerHistoryMapper;
+  private final CareerHistoryRepository careerHistoryRepository;
+  private final CareerHistoryMapperB careerHistoryMapperB;
 
-    public CareerHistoryDTO addRecord(CareerHistoryDTO careerHistoryDTO) {
-        CareerHistory careerHistory = careerHistoryMapper.toCareerHistory(careerHistoryDTO);
-        CareerHistory careerHistoryCreated = careerHistoryRepository.save(careerHistory);
-        return careerHistoryMapper.toCareerHistoryDTO(careerHistoryCreated);
-    }
+  public CareerHistoryDTO addRecord(CareerHistoryDTO careerHistoryDTO) {
+    CareerHistory careerHistory = careerHistoryMapperB.toCareerHistory(careerHistoryDTO);
+    CareerHistory careerHistoryCreated = careerHistoryRepository.save(careerHistory);
+    return careerHistoryMapperB.toCareerHistoryDTO(careerHistoryCreated);
+  }
 
-    public List<CareerHistoryDTO> getAllRecords() {
-        return careerHistoryRepository
-                .findAll()
-                .stream()
-                .map(careerHistoryMapper::toCareerHistoryDTO)
-                .toList();
-    }
+  public List<CareerHistoryDTO> getAllRecords() {
+    return careerHistoryRepository
+      .findAll()
+      .stream()
+      .map(careerHistoryMapperB::toCareerHistoryDTO)
+      .toList();
+  }
 
-    public Optional<CareerHistoryDTO> getRecordById(String id) {
-        Optional<CareerHistory> careerHistory = careerHistoryRepository.findById(id);
-        return careerHistory.map(careerHistoryMapper::toCareerHistoryDTO);
-    }
+  public Optional<CareerHistoryDTO> getRecordById(String id) {
+    Optional<CareerHistory> careerHistory = careerHistoryRepository.findById(id);
+    return careerHistory.map(careerHistoryMapperB::toCareerHistoryDTO);
+  }
 
-    public CareerHistoryDTO updateRecord(String id, CareerHistoryDTO newCareerHistoryDTO) {
-        Optional<CareerHistory> careerHistory = careerHistoryRepository.findById(id);
+  public CareerHistoryDTO updateRecord(String id, CareerHistoryDTO newCareerHistoryDTO) {
+    Optional<CareerHistory> careerHistory = careerHistoryRepository.findById(id);
 
-        if (careerHistory.isEmpty()) throw new IllegalArgumentException("Not found");
+    if (careerHistory.isEmpty()) throw new IllegalArgumentException("Not found");
 
-        CareerHistory newCareerHistory = careerHistoryMapper.toCareerHistory(newCareerHistoryDTO);
-        CareerHistory createdCareerHistory = careerHistoryRepository.save(newCareerHistory);
+    CareerHistory newCareerHistory = careerHistoryMapperB.toCareerHistory(newCareerHistoryDTO);
+    CareerHistory createdCareerHistory = careerHistoryRepository.save(newCareerHistory);
 
-        return careerHistoryMapper.toCareerHistoryDTO(createdCareerHistory);
-    }
+    return careerHistoryMapperB.toCareerHistoryDTO(createdCareerHistory);
+  }
 
 
 }

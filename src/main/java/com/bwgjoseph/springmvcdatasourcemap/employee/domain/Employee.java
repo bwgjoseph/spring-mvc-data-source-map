@@ -9,6 +9,8 @@ import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
+import java.util.Set;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 @TypeAlias("employee")
@@ -16,11 +18,16 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 @Document(collection = "employee")
 @NoArgsConstructor
 public class Employee extends References {
-    @MongoId
-    String id;
-    com.bwgjoseph.springmvcdatasourcemap.employee.dto.EmployeeDTO.Gender gender;
-    String employeeName;
-    String bioNotes;
-    Geolocation address;
-    Country nationality;
+  @MongoId
+  String id;
+  com.bwgjoseph.springmvcdatasourcemap.employee.dto.EmployeeDTO.Gender gender;
+  String employeeName;
+  String bioNotes;
+  Geolocation address;
+  Country nationality;
+
+  @Override
+  public Set<String> getSupportedReferences() {
+    return Set.of("*");
+  }
 }
